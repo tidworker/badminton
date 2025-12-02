@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>BADMINTON ScoreBoard</title>
+    <title>AI BADMINTON - Stable Mode</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -31,9 +31,11 @@
             --p-right-2: var(--color-red);   
 
             --font-main: 'Kanit', sans-serif;
-            --score-size-normal: 13rem; 
-            --score-size-huge: 40vw; 
+            --score-size-normal: 26rem; 
+            --score-size-huge: 32vw; 
         }
+
+        * { box-sizing: border-box; }
 
         body { 
             margin: 0; background: #000; color: #fff; 
@@ -49,20 +51,23 @@
             background: #000; z-index: 9999; display: none; 
             flex-direction: column; justify-content: center; align-items: center;
             text-align: center;
+            padding: 20px;
         }
         .lock-title { font-size: 3rem; font-weight: 900; font-style: italic; letter-spacing: 5px; margin-bottom: 20px; color: #fff; }
         .rotate-icon {
             width: 60px; height: 100px; border: 4px solid #fff; border-radius: 10px;
-            animation: rotate-anim 2s infinite ease-in-out; margin-bottom: 20px; position: relative;
+            animation: rotate-anim 2s infinite ease-in-out; margin-bottom: 30px; position: relative;
         }
         .rotate-icon::before {
             content: ''; position: absolute; top: 10px; left: 50%; transform: translateX(-50%); width: 4px; height: 4px; background: #fff; border-radius: 50%;
         }
         .lock-subtitle { font-size: 1.2rem; opacity: 0.6; letter-spacing: 2px; color: #aaa; }
         @keyframes rotate-anim { 0% { transform: rotate(0deg); } 40% { transform: rotate(90deg); } 100% { transform: rotate(90deg); } }
+        
         @media screen and (orientation: portrait) {
-            #portrait-lock { display: flex; }
-            #game-container, #start-screen, #server-select-screen, #name-input-screen { display: none !important; }
+            body.require-landscape #portrait-lock { display: flex; }
+            body.require-landscape #game-container, 
+            body.require-landscape #server-select-screen { display: none !important; }
         }
 
         /* --- Screens --- */
@@ -71,19 +76,30 @@
             background: #000; z-index: 5000;
             display: flex; justify-content: center; align-items: center;
             flex-direction: column; transition: opacity 0.5s;
+            overflow-y: auto; overflow-x: hidden;
         }
         #server-select-screen, #winner-screen, #name-input-screen { display: none; } 
 
-        .start-container { text-align: center; }
+        .start-container { text-align: center; width: 90%; max-width: 600px; padding: 20px; }
+        
         .main-title {
-            font-size: 4rem; font-weight: 900; font-style: italic;
-            color: #fff; letter-spacing: 5px; margin: 0 0 40px 0;
+            font-size: clamp(3rem, 10vw, 5rem); 
+            font-weight: 900; font-style: italic;
+            color: #fff; letter-spacing: 5px; margin: 0 0 10px 0;
             text-shadow: 0 0 20px rgba(255,255,255,0.3);
+            line-height: 1;
         }
+        
+        .sub-title {
+            display: block; font-size: 1.5rem; font-weight: 600; letter-spacing: 8px;
+            margin-bottom: 50px; text-transform: uppercase;
+        }
+        .txt-score { color: var(--color-red); text-shadow: 0 0 20px var(--color-red); }
+        .txt-board { color: var(--color-blue); text-shadow: 0 0 20px var(--color-blue); }
 
         /* AI Toggle */
         .ai-toggle-container {
-            margin-top: 50px; display: flex; align-items: center; justify-content: center; gap: 15px;
+            margin-top: 40px; display: flex; align-items: center; justify-content: center; gap: 15px;
             opacity: 0.7; transition: opacity 0.3s;
         }
         .ai-toggle-container:hover { opacity: 1; }
@@ -101,41 +117,36 @@
         input:checked + .slider { background-color: var(--color-txt-right); border-color: var(--color-txt-right); }
         input:checked + .slider:before { transform: translateX(28px); }
 
-        /* --- Unified Modals (Warning & Tutorial) --- */
+        /* --- Modals --- */
         #ai-warning-modal, #tutorial-modal {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.9); z-index: 9999;
             display: none; justify-content: center; align-items: center;
+            padding: 20px;
         }
         
-        /* 統一的 Modal Box 樣式 */
         .modal-box {
             background: #1a1a1a; 
-            border: 2px solid #fff; /* 統一白色邊框 */
+            border: 2px solid #fff; 
             padding: 40px; border-radius: 20px; text-align: center;
-            max-width: 550px; width: 85%;
-            box-shadow: 0 0 40px rgba(255, 255, 255, 0.15); /* 統一光暈 */
+            max-width: 550px; width: 100%;
+            box-shadow: 0 0 40px rgba(255, 255, 255, 0.15);
+        }
+        
+        /* 移除教學模式光暈 */
+        #tutorial-modal .modal-box {
+            background: #000; border: none; box-shadow: none;
         }
 
         .modal-title {
             font-size: 2.5rem; font-weight: 900; color: #fff;
-            margin-bottom: 25px; letter-spacing: 2px;
-            text-transform: uppercase;
+            margin-bottom: 25px; letter-spacing: 2px; text-transform: uppercase;
         }
-        
         .modal-text {
             font-size: 1.3rem; color: #ccc; line-height: 1.8; margin-bottom: 30px;
-            font-weight: 300;
+            font-weight: 300; text-align: center;
         }
-
-        /* Warning 特化置中 */
-        #ai-warning-modal .modal-text { text-align: center; }
-
-        /* Tutorial 特化列表靠左 */
-        #tutorial-list {
-            text-align: left; padding-left: 0; list-style: none; margin-bottom: 30px;
-            padding: 0 20px; /* 增加內距 */
-        }
+        #tutorial-list { padding: 0; list-style: none; margin: 0 0 30px 0; text-align: center; }
         #tutorial-list li { margin-bottom: 15px; }
         #tutorial-list li strong { color: #fff; font-weight: 600; }
 
@@ -143,49 +154,92 @@
         .modal-btn {
             padding: 12px 40px; border-radius: 30px; font-family: var(--font-main);
             font-weight: bold; font-size: 1.2rem; cursor: pointer; border: none;
-            transition: all 0.2s;
+            transition: all 0.2s; min-width: 120px;
+            display: flex; justify-content: center; align-items: center;
         }
         .btn-cancel { background: #333; color: #fff; border: 1px solid #555; }
-        .btn-cancel:hover { background: #444; }
         .btn-confirm { background: #fff; color: #000; }
         .btn-confirm:hover { box-shadow: 0 0 20px rgba(255,255,255,0.5); }
 
-        .mode-btn-container { display: flex; gap: 30px; justify-content: center; width: 100%; }
+        .mode-btn-container { display: flex; gap: 30px; justify-content: center; width: 100%; flex-wrap: wrap; }
         .btn-mode {
-            flex: 1; font-family: var(--font-main); font-size: 2rem; font-weight: 900; font-style: italic;
-            color: #fff; background: transparent; border: none; padding: 20px 0; 
-            cursor: pointer; text-transform: uppercase;
+            flex: 1; min-width: 160px;
+            font-family: var(--font-main); font-size: 2rem; font-weight: 900; font-style: italic;
+            color: #fff; background: transparent; border: 2px solid rgba(255,255,255,0.5); padding: 20px 0; 
+            border-radius: 12px; cursor: pointer; text-transform: uppercase;
             text-shadow: 0 0 10px rgba(255,255,255,0.5); transition: all 0.3s;
-            border: 2px solid rgba(255,255,255,0.3); border-radius: 50px;
         }
         .btn-mode:hover { border-color: #fff; background: rgba(255,255,255,0.1); transform: scale(1.05); box-shadow: 0 0 20px rgba(255,255,255,0.2); }
 
         /* --- Name Input Screen --- */
-        #name-inputs-wrapper { display: flex; gap: 50px; margin-bottom: 40px; }
-        .team-input-col { display: flex; flex-direction: column; gap: 20px; align-items: center; }
-        .team-title { font-size: 1.5rem; font-weight: bold; letter-spacing: 2px; margin-bottom: 10px; }
+        #name-inputs-wrapper { display: flex; gap: 50px; margin-bottom: 20px; flex-wrap: wrap; justify-content: center; width: 100%; }
+        @media screen and (orientation: portrait) { #name-inputs-wrapper { flex-direction: column; gap: 30px; } }
         
+        .team-input-col { display: flex; flex-direction: column; gap: 15px; align-items: center; width: 100%; }
+        .team-title { 
+            font-size: 1.5rem; font-weight: 900; letter-spacing: 2px; margin-bottom: 10px; font-style: italic;
+            text-shadow: 0 0 10px currentColor;
+        }
+        
+        .input-wrapper {
+            position: relative; width: 100%; display: flex; flex-direction: column; align-items: center;
+        }
+
         .input-box {
             background: rgba(255, 255, 255, 0.15); 
             border: none; border-radius: 12px;
             color: #fff; font-family: var(--font-main); font-size: 1.5rem; font-weight: bold;
-            width: 160px; text-align: center; padding: 12px;
+            width: 200px; text-align: center; padding: 12px;
             text-transform: uppercase; outline: none; transition: all 0.3s;
         }
         .input-box::placeholder { color: rgba(255,255,255,0.3); font-weight: normal; }
         .input-box:focus { background: rgba(255, 255, 255, 0.25); box-shadow: 0 0 15px rgba(255,255,255,0.3); }
         
-        .nav-btn-container { display: flex; gap: 20px; justify-content: center; width: 100%; }
+        /* History Dropdown */
+        .history-dropdown {
+            position: absolute;
+            top: 105%; left: 50%; transform: translateX(-50%);
+            width: 200px;
+            background: rgba(0,0,0,0.95);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            z-index: 100;
+            max-height: 200px; overflow-y: auto;
+            display: none;
+            flex-direction: column;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+        }
+        .history-dropdown.show { display: flex; }
+
+        .history-item {
+            padding: 12px;
+            color: rgba(255,255,255,0.8);
+            font-size: 1.1rem;
+            text-align: center;
+            cursor: pointer;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            transition: background 0.2s;
+        }
+        .history-item:last-child { border-bottom: none; }
+        .history-item:hover { background: rgba(255,255,255,0.2); color: #fff; }
+        .history-item.deleting { background: #ff2e63; color: #fff; }
+
+        .nav-btn-container { display: flex; gap: 20px; justify-content: center; width: 100%; flex-wrap: wrap; margin-top: 20px; }
         .btn-nav {
             font-family: var(--font-main); font-size: 1.2rem; font-weight: 900; font-style: italic;
             color: #fff; background: transparent; border: none; padding: 10px 40px; 
             cursor: pointer; text-transform: uppercase; transition: all 0.3s;
             border: 2px solid rgba(255,255,255,0.3); border-radius: 50px;
+            min-width: 120px;
         }
         .btn-nav:hover { background: rgba(255,255,255,0.1); border-color: #fff; }
 
         /* --- Server Select --- */
         .split-select { display: flex; width: 100%; height: 100%; }
+        @media screen and (orientation: portrait) { 
+            .split-select { flex-direction: column; } 
+            .select-zone { width: 100% !important; height: 50% !important; font-size: 3rem !important; }
+        }
         .select-zone {
             width: 50%; height: 100%; display: flex; justify-content: center; align-items: center;
             font-size: 5rem; font-weight: 900; font-style: italic; border: none; cursor: pointer; transition: background 0.3s;
@@ -194,11 +248,10 @@
         .zone-right { color: var(--color-txt-right); text-shadow: 0 0 20px var(--color-txt-right), 0 0 40px var(--color-txt-right); }
         .select-zone:active { background: rgba(255,255,255,0.1); }
         .select-hint { position: absolute; top: 20%; width: 100%; text-align: center; font-size: 2rem; pointer-events: none; text-shadow: 0 0 10px #fff; z-index: 10; }
-        
         #server-back-btn { position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%); z-index: 20; }
 
         /* --- Winner --- */
-        #winner-text { font-size: 4rem; font-weight: 900; color: #FFE700; text-shadow: 0 0 20px #FFE700; margin-bottom: 20px; }
+        #winner-text { font-size: 10vw; font-weight: 900; color: #FFE700; text-shadow: 0 0 20px #FFE700; margin-bottom: 20px; text-align: center; }
         #btn-restart { font-size: 2rem; border: 2px solid #fff; background: transparent; color: #fff; padding: 10px 30px; cursor: pointer; font-family: var(--font-main); }
 
         /* --- Game --- */
@@ -243,9 +296,11 @@
         }
         .controls-visible #bottom-controls { opacity: 1; }
 
-        #serve-arrow-svg { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 80px; height: 80px; opacity: 0; transition: all 0.3s; z-index: 100; filter: drop-shadow(0 0 10px rgba(0,0,0,0.5)); }
-        .svg-arrow-left { fill: var(--color-txt-left); transform: translate(-50%, -50%) rotate(180deg) !important; opacity: 1 !important; filter: drop-shadow(0 0 20px var(--color-txt-left)) !important; }
-        .svg-arrow-right { fill: var(--color-txt-right); transform: translate(-50%, -50%) rotate(0deg) !important; opacity: 1 !important; filter: drop-shadow(0 0 20px var(--color-txt-right)) !important; }
+        #serve-arrow-svg { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 90px; height: 90px; opacity: 0; transition: all 0.3s; z-index: 100; filter: drop-shadow(0 0 10px rgba(0,0,0,0.5)); }
+        .svg-arrow-left { fill: var(--color-txt-left); transform: translate(-50%, -50%) rotate(180deg) !important; opacity: 1 !important; filter: drop-shadow(0 0 30px var(--color-txt-left)) drop-shadow(0 0 30px var(--color-txt-left)) !important;
+}
+        .svg-arrow-right { fill: var(--color-txt-right); transform: translate(-50%, -50%) rotate(0deg) !important; opacity: 1 !important; filter: drop-shadow(0 0 30px var(--color-txt-right)) drop-shadow(0 0 30px var(--color-txt-right)) !important;
+}
 
         .btn { background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.3); color: rgba(255,255,255,0.8); padding: 8px 20px; font-family: var(--font-main); font-weight: 600; font-size: 12px; letter-spacing: 2px; text-transform: uppercase; cursor: pointer; transition: all 0.3s; backdrop-filter: blur(4px); border-radius: 4px; }
         .btn:hover { background: rgba(255,255,255,0.1); border-color: #fff; color: #fff; }
@@ -259,10 +314,10 @@
         
         #lbl-left { color: var(--color-txt-left); }
         #score-left { color: transparent; -webkit-text-stroke: 3px var(--color-txt-left); }
-        #score-left.has-score { color: var(--color-txt-left); -webkit-text-stroke: 0; text-shadow: 0 0 30px var(--color-txt-left), 0 0 60px var(--color-txt-left); }
+        #score-left.has-score { color: var(--color-txt-left); -webkit-text-stroke: 0; text-shadow: 0 0 10px var(--color-txt-left), 0 0 30px var(--color-txt-left); }
         #lbl-right { color: var(--color-txt-right); }
         #score-right { color: transparent; -webkit-text-stroke: 3px var(--color-txt-right); }
-        #score-right.has-score { color: var(--color-txt-right); -webkit-text-stroke: 0; text-shadow: 0 0 30px var(--color-txt-right), 0 0 60px var(--color-txt-right); }
+        #score-right.has-score { color: var(--color-txt-right); -webkit-text-stroke: 0; text-shadow: 0 0 10px var(--color-txt-right), 0 0 30px var(--color-txt-right); }
         .score-pop { animation: bump 0.2s ease-out; }
         @keyframes bump { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
 
@@ -279,6 +334,7 @@
         <div class="lock-title">BADMINTON</div>
         <div class="rotate-icon"></div>
         <div class="lock-subtitle">PLEASE ROTATE DEVICE <br>螢幕轉橫/連點切換全螢幕</div>
+        <button class="btn-nav" onclick="handleLockBack()" style="margin-top: 30px;">BACK</button>
     </div>
 
     <div id="ai-warning-modal">
@@ -286,7 +342,7 @@
             <div class="modal-title">WARNING</div>
             <div class="modal-text">
                 AI輔助辨識系統尚未完善，<br>
-                可能發生系統閃退卡頓等情形
+                可能發生系統卡頓及閃退。
             </div>
             <div class="modal-buttons">
                 <button class="modal-btn btn-cancel" onclick="cancelAI()">CANCEL</button>
@@ -298,9 +354,9 @@
     <div id="tutorial-modal">
         <div class="modal-box">
             <div class="modal-title" id="tutorial-title">MODE TUTORIAL</div>
-            <ul class="modal-text" id="tutorial-list">
-                </ul>
+            <ul class="modal-text" id="tutorial-list"></ul>
             <div class="modal-buttons">
+                <button class="modal-btn btn-cancel" onclick="backFromTutorial()">BACK</button>
                 <button class="modal-btn btn-confirm" onclick="closeTutorial()">GOT IT</button>
             </div>
         </div>
@@ -308,7 +364,12 @@
 
     <div id="start-screen">
         <div class="start-container">
-            <h1 class="main-title">BADMINTON</h1>
+            <h1 class="main-title">
+                BADMINTON
+                <span class="sub-title">
+                    <span class="txt-score">Score</span><span class="txt-board">Board</span>
+                </span>
+            </h1>
             <div class="mode-btn-container">
                 <button class="btn-mode" onclick="selectMode('singles')">SINGLES</button>
                 <button class="btn-mode" onclick="selectMode('doubles')">DOUBLES</button>
@@ -320,12 +381,11 @@
                     <span class="slider"></span>
                 </label>
             </div>
-            <div class="lock-subtitle"> <br>連點切換全螢幕<br>Double-click to enter fullscreen</div>
         </div>
     </div>
 
     <div id="name-input-screen">
-        <div style="font-size: 2rem; font-weight: bold; margin-bottom: 30px; letter-spacing: 2px;">ENTER NAMES</div>
+        <div style="font-size: 2rem; font-weight: bold; margin-bottom: 30px; letter-spacing: 2px; text-align: center;">ENTER NAMES</div>
         <div id="name-inputs-wrapper"></div>
         <div class="nav-btn-container">
             <button class="btn-nav" onclick="goBackToStart()">BACK</button>
@@ -375,6 +435,9 @@
                 <path d="M 20,20 L 80,50 L 20,80 Z" stroke-linejoin="round" stroke-width="10" />
             </svg>
             
+            <div id="top-controls">
+                </div>
+
             <div class="scoreboard-row">
                 <div class="score-group" id="group-left">
                     <div id="score-left" class="score-num">0</div>
@@ -449,9 +512,37 @@
         let areNamesVisible = true; 
         let controlsTimer = null; 
         let tempSelectedMode = '';
+        let smoothX = 0; let smoothY = 0;
+
+        // --- 強制鎖定設定變數 ---
+        let appSettings = {
+            width: 480,   // 360p 寬度
+            height: 360,  // 360p 高度
+            fps: 15       // 鎖定 15 FPS
+        };
+        
+        const STORAGE_KEY = 'badminton_player_names';
+        let historyList = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
 
         const audioLeft = new Audio('red.mp3'); const audioRight = new Audio('blue.mp3');
         let playerNames = { l1: "", l2: "", r1: "", r2: "" };
+
+        // --- Wake Lock Logic (防止螢幕關閉) ---
+        let wakeLock = null;
+        async function requestWakeLock() {
+            try {
+                if ('wakeLock' in navigator) {
+                    wakeLock = await navigator.wakeLock.request('screen');
+                }
+            } catch (err) {
+                console.error(`${err.name}, ${err.message}`);
+            }
+        }
+        document.addEventListener('visibilitychange', async () => {
+            if (wakeLock !== null && document.visibilityState === 'visible') {
+                await requestWakeLock();
+            }
+        });
 
         // --- Warning Logic ---
         aiCheckbox.addEventListener('change', (e) => {
@@ -478,19 +569,19 @@
         function selectMode(mode) {
             tempSelectedMode = mode;
             
-            // 設定教學內容
             if (isAIMode) {
-                tutorialTitle.innerText = "AI 輔助模式";
+                tutorialTitle.innerText = "AI 模式教學";
                 tutorialList.innerHTML = `
-                    <li>1. 請站在鏡頭前，確保上半身可見。</li>
-                    <li>2. <strong>舉起手2秒</strong>（手腕高於耳朵）感應得分。</li>
-                    <li>3. 畫面左邊舉手 = 左隊得分，右邊舉手 = 右隊得分。</li>`;
+                    <li>1. 站在鏡頭前，<strong>全身</strong>入鏡。</li>
+                    <li>2. 持續<strong>舉手2秒</strong>感應得分。</li>
+                    <li>3. 畫面<strong>左邊</strong>舉手 = 左隊得分。</li>
+                    <li>4. 畫面<strong>右邊</strong>舉手 = 右隊得分。</li>`;
             } else {
-                tutorialTitle.innerText = "手動模式";
+                tutorialTitle.innerText = "手動模式教學";
                 tutorialList.innerHTML = `
                     <li>1. 在左/右側分數區域操作。</li>
-                    <li>2. <strong>向上滑動</strong>：增加分數 (+1)。</li>
-                    <li>3. <strong>向下滑動</strong>：減少分數 (-1)。</li>`;
+                    <li>2. <strong>向上滑動</strong>：增加分數 +1。</li>
+                    <li>3. <strong>向下滑動</strong>：減少分數 -1。</li>`;
             }
 
             startScreen.style.display = 'none';
@@ -500,6 +591,11 @@
         function closeTutorial() {
             tutorialModal.style.display = 'none';
             goToNameInput(tempSelectedMode);
+        }
+        
+        function backFromTutorial() {
+            tutorialModal.style.display = 'none';
+            startScreen.style.display = 'flex';
         }
 
         function goToNameInput(mode) {
@@ -516,6 +612,21 @@
         function goBackToNameInput() {
             selectScreen.style.display = 'none';
             nameInputScreen.style.display = 'flex';
+            bodyEl.classList.remove('require-landscape');
+        }
+        
+        function handleLockBack() {
+            if (selectScreen.style.display === 'block' || gameContainer.style.display === 'block') {
+                if (gameContainer.style.display === 'block') {
+                    exitGame();
+                    startScreen.style.display = 'none';
+                    nameInputScreen.style.display = 'flex';
+                } else {
+                    goBackToNameInput();
+                }
+            } else {
+                goBackToStart();
+            }
         }
 
         function generateNameInputs() {
@@ -524,40 +635,121 @@
 
             const leftCol = document.createElement('div');
             leftCol.className = 'team-input-col';
-            leftCol.innerHTML = `<div class="team-title" style="color:var(--color-txt-left)">LEFT TEAM</div>`;
-            const l1Input = createInput('L1', 'Player 1');
+            leftCol.innerHTML = `<div class="team-title" style="color:var(--color-txt-left); text-shadow: 0 0 15px var(--color-txt-left);">LEFT TEAM</div>`;
+            
+            const l1Input = createInput('L1', 'LEFT 1');
             leftCol.appendChild(l1Input);
+            
             if (gameMode === 'doubles') {
-                const l2Input = createInput('L2', 'Player 3');
+                const l2Input = createInput('L2', 'LEFT 2');
                 leftCol.appendChild(l2Input);
             }
             wrapper.appendChild(leftCol);
 
             const rightCol = document.createElement('div');
             rightCol.className = 'team-input-col';
-            rightCol.innerHTML = `<div class="team-title" style="color:var(--color-txt-right)">RIGHT TEAM</div>`;
-            const r1Input = createInput('R1', 'Player 2');
+            rightCol.innerHTML = `<div class="team-title" style="color:var(--color-txt-right); text-shadow: 0 0 15px var(--color-txt-right);">RIGHT TEAM</div>`;
+            
+            const r1Input = createInput('R1', 'RIGHT 1');
             rightCol.appendChild(r1Input);
+
             if (gameMode === 'doubles') {
-                const r2Input = createInput('R2', 'Player 4');
+                const r2Input = createInput('R2', 'Right 2');
                 rightCol.appendChild(r2Input);
             }
             wrapper.appendChild(rightCol);
         }
-
+        
         function createInput(idSuffix, placeholder) {
+            const container = document.createElement('div');
+            container.className = 'input-wrapper';
+            
             const input = document.createElement('input');
             input.type = 'text';
             input.className = 'input-box';
             input.id = 'input-' + idSuffix;
             input.placeholder = placeholder;
             input.oninput = function() { validateNameInput(this); };
-            return input;
+            
+            const historyDropdown = document.createElement('div');
+            historyDropdown.className = 'history-dropdown';
+            historyDropdown.id = 'history-' + idSuffix;
+            
+            input.addEventListener('click', (e) => {
+                e.stopPropagation();
+                document.querySelectorAll('.history-dropdown').forEach(el => el.classList.remove('show'));
+                renderHistoryItems(historyDropdown, input);
+                historyDropdown.classList.add('show');
+            });
+
+            container.appendChild(input);
+            container.appendChild(historyDropdown);
+            return container;
+        }
+        
+        function renderHistoryItems(container, inputEl) {
+            container.innerHTML = '';
+            if (historyList.length === 0) return;
+            
+            historyList.slice().reverse().forEach(name => {
+                const item = document.createElement('div');
+                item.className = 'history-item';
+                item.innerText = name;
+                
+                item.onclick = (e) => {
+                    e.stopPropagation();
+                    inputEl.value = name;
+                    container.classList.remove('show');
+                };
+                
+                let pressTimer;
+                const startPress = () => {
+                    pressTimer = setTimeout(() => {
+                        if(confirm('Delete "' + name + '"?')) {
+                            deleteHistory(name);
+                            renderHistoryItems(container, inputEl); 
+                        }
+                    }, 800);
+                    item.classList.add('deleting');
+                };
+                const endPress = () => {
+                    clearTimeout(pressTimer);
+                    item.classList.remove('deleting');
+                };
+                item.addEventListener('mousedown', startPress);
+                item.addEventListener('touchstart', startPress);
+                item.addEventListener('mouseup', endPress);
+                item.addEventListener('touchend', endPress);
+                item.addEventListener('mouseleave', endPress);
+                
+                container.appendChild(item);
+            });
+        }
+        
+        document.addEventListener('click', () => {
+            document.querySelectorAll('.history-dropdown').forEach(el => el.classList.remove('show'));
+        });
+
+        function saveToHistory(name) {
+            if (!name || name.trim() === "" || name.startsWith("Player") || name === "P1" || name === "P2") return;
+            name = name.trim();
+            const idx = historyList.indexOf(name);
+            if (idx > -1) historyList.splice(idx, 1);
+            historyList.push(name);
+            if (historyList.length > 10) historyList.shift();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(historyList));
+        }
+
+        function deleteHistory(name) {
+            const idx = historyList.indexOf(name);
+            if (idx > -1) {
+                historyList.splice(idx, 1);
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(historyList));
+            }
         }
 
         function validateNameInput(el) {
             let str = el.value;
-            // 3 Fullwidth (Weight 6)
             let weight = 0;
             let validStr = "";
             for (let i = 0; i < str.length; i++) {
@@ -571,22 +763,39 @@
         }
 
         function submitNames() {
-            const l1 = document.getElementById('input-L1').value || "P1";
-            const r1 = document.getElementById('input-R1').value || "P3";
+            const l1Val = document.getElementById('input-L1').value;
+            const r1Val = document.getElementById('input-R1').value;
+            
+            const l1 = l1Val || " ";
+            const r1 = r1Val || " ";
+            
+            saveToHistory(l1Val);
+            saveToHistory(r1Val);
+
             playerNames.l1 = l1; playerNames.r1 = r1;
 
             if (gameMode === 'doubles') {
-                playerNames.l2 = document.getElementById('input-L2').value || "P2";
-                playerNames.r2 = document.getElementById('input-R2').value || "P4";
+                const l2Val = document.getElementById('input-L2').value;
+                const r2Val = document.getElementById('input-R2').value;
+                playerNames.l2 = l2Val || " ";
+                playerNames.r2 = r2Val || " ";
+                saveToHistory(l2Val);
+                saveToHistory(r2Val);
             } else {
                 playerNames.l2 = l1; playerNames.r2 = r1;
             }
+            
             nameInputScreen.style.display = 'none';
             selectScreen.style.display = 'block';
+            
+            bodyEl.classList.add('require-landscape');
         }
 
         function initSystem(firstServer) {
             selectScreen.style.display = 'none';
+            
+            requestWakeLock();
+            
             currentServer = firstServer;
             scores = { left: 0, right: 0 };
             leftPositions = [1, 2]; rightPositions = [1, 2];
@@ -638,12 +847,18 @@
 
         function exitGame() {
             isGameActive = false; 
-            if(rafId) cancelAnimationFrame(rafId);
+            if(rafId) { 
+                cancelAnimationFrame(rafId);
+                clearTimeout(rafId); 
+            }
 
-            // Stop Camera
             if (video.srcObject) {
                 video.srcObject.getTracks().forEach(track => track.stop());
                 video.srcObject = null;
+            }
+
+            if (wakeLock !== null) {
+                wakeLock.release().then(() => { wakeLock = null; });
             }
 
             gameContainer.style.display = 'none';
@@ -653,14 +868,18 @@
             cooldownTimer = 0;
             if (cooldownInterval) clearInterval(cooldownInterval);
             gameContainer.classList.remove('grayscale-mode');
+            bodyEl.classList.remove('require-landscape');
         }
 
         async function startApp() {
             try {
                 statusText.innerText = "LOADING AI CORE...";
+                tf.env().set('WEBGL_DELETE_TEXTURE_THRESHOLD', 0);
                 await tf.setBackend('webgl'); await tf.ready();
+                
+                // 使用鎖定的解析度 (480x360)
                 const stream = await navigator.mediaDevices.getUserMedia({
-                    'audio': false, 'video': { facingMode: 'user', width: { ideal: 1280 }, height: { ideal: 720 } }
+                    'audio': false, 'video': { facingMode: 'user', width: { ideal: appSettings.width }, height: { ideal: appSettings.height } }
                 });
                 video.srcObject = stream;
                 video.onloadedmetadata = () => {
@@ -688,7 +907,6 @@
             showControls();
         }
 
-        // --- Auto Hide Controls ---
         function showControls() {
             uiLayer.classList.add('controls-visible');
             clearTimeout(controlsTimer);
@@ -701,20 +919,21 @@
             gameContainer.addEventListener(evt, showControls, {passive: true});
         });
 
-
-        // --- 2. 邏輯 ---
         function manualAdjustScore(side, delta) {
             if (delta > 0) handleScorePoint(side);
             else {
                 scores[side] += delta;
                 if (scores[side] < 0) scores[side] = 0;
                 
-                if (delta < 0 && gameMode === 'doubles' && side === currentServer) {
-                     if (side === 'left') {
-                         let temp = leftPositions[0]; leftPositions[0] = leftPositions[1]; leftPositions[1] = temp;
-                     } else {
-                         let temp = rightPositions[0]; rightPositions[0] = rightPositions[1]; rightPositions[1] = temp;
-                     }
+                if (delta < 0 && side === currentServer) {
+                      if (gameMode === 'doubles') {
+                          if (side === 'left') {
+                              let temp = leftPositions[0]; leftPositions[0] = leftPositions[1]; leftPositions[1] = temp;
+                          } else {
+                              let temp = rightPositions[0]; rightPositions[0] = rightPositions[1]; rightPositions[1] = temp;
+                          }
+                      }
+                      currentServer = (side === 'left' ? 'right' : 'left'); 
                 }
                 updateScoreUI(side); updatePositionsUI();
             }
@@ -744,7 +963,6 @@
             updatePositionsUI();
         }
 
-        // --- 3. UI 更新 ---
         function updatePositionsUI() {
             Object.values(bars).forEach(bar => { bar.className = 'side-bar'; bar.style.removeProperty('--bar-color'); });
             Object.values(nameLabels).forEach(lbl => { lbl.innerText = ""; lbl.classList.remove('name-visible'); });
@@ -767,7 +985,6 @@
             bars.rt.style.setProperty('--bar-color', `var(${cRT})`);
             bars.rb.style.setProperty('--bar-color', `var(${cRB})`);
 
-            // Name Display Logic
             let nameLT = "", nameLB = "", nameRT = "", nameRB = "";
             if (gameMode === 'singles') {
                 if (isEven) nameLB = playerNames.l1; else nameLT = playerNames.l1;
@@ -803,7 +1020,6 @@
             else arrowSvg.setAttribute('class', 'svg-arrow-right');
         }
 
-        // --- 輔助 ---
         function checkWinner(side) {
             const my = scores[side]; const op = scores[side==='left'?'right':'left'];
             let isWin = false;
@@ -813,7 +1029,7 @@
             return false;
         }
         function showWinner(side) {
-            isGameActive = false; if(rafId) cancelAnimationFrame(rafId);
+            isGameActive = false; if(rafId) { cancelAnimationFrame(rafId); clearTimeout(rafId); }
             const wName = side==='left' ? playerNames.l1 : playerNames.r1; 
             winnerText.innerText = wName + " WINS!";
             winnerText.style.color = side==='left'?'var(--color-txt-left)':'var(--color-txt-right)';
@@ -832,7 +1048,6 @@
         }
         function startCooldown(t) {
             cooldownTimer = t || COOLDOWN_DURATION;
-            // 加入灰階
             gameContainer.classList.add('grayscale-mode');
             if(cooldownInterval) clearInterval(cooldownInterval);
             const start = Date.now(); const total = cooldownTimer*1000;
@@ -841,7 +1056,6 @@
                 if(cooldownTimer<=0) { 
                     clearInterval(cooldownInterval); 
                     cooldownTimer=0; 
-                    // 移除灰階
                     gameContainer.classList.remove('grayscale-mode');
                 }
             },50);
@@ -861,22 +1075,33 @@
 
         async function detectLoop() {
             if(!isGameActive) return;
-            if(isAIMode && video.readyState>=2) {
+
+            // 使用設定的 FPS (15) 計算延遲
+            setTimeout(() => {
+                rafId = requestAnimationFrame(runDetection); 
+            }, 1000 / appSettings.fps); 
+        }
+
+        async function runDetection() {
+             if(!isGameActive) return;
+             
+             if(isAIMode && video.readyState>=2) {
                 try {
                     const poses = await detector.estimatePoses(video);
                     ctx.clearRect(0,0,canvas.width,canvas.height);
                     if(cooldownTimer<=0) {
                         if(gameContainer.classList.contains('grayscale-mode')) gameContainer.classList.remove('grayscale-mode');
-                        // drawCenterLine removed for cleanliness
+                        if(isCamVisible) drawCenterLine();
                         if(poses.length>0 && poses[0].score>0.3) {
-                            // if(isCamVisible) drawKeypoints(poses[0].keypoints);
                             checkGameLogic(poses[0].keypoints);
                         } else resetHold();
                     }
-                } catch(e){ console.error(e); cancelAnimationFrame(rafId); return; }
+                } catch(e){ console.error(e); return; }
             } else { ctx.clearRect(0,0,canvas.width,canvas.height); }
-            rafId = requestAnimationFrame(detectLoop);
+            
+            detectLoop();
         }
+
         function checkGameLogic(kp) {
             const midX = canvas.width/2;
             const lw = kp.find(k=>k.name==='left_wrist'); const rw = kp.find(k=>k.name==='right_wrist');
@@ -887,12 +1112,38 @@
             const side = active.x > midX ? 'left' : 'right';
             if(!isHolding) { isHolding=true; holdStart=Date.now(); }
             else {
+                if(!isHolding) { smoothX = active.x; smoothY = active.y; }
+                smoothX += (active.x - smoothX) * 0.2;
+                smoothY += (active.y - smoothY) * 0.2;
                 const prog = Math.min((Date.now()-holdStart)/HOLD_DURATION, 1);
-                // drawHoldRing(active.x, active.y, prog, side);
+                drawHoldRing(smoothX, smoothY, prog, side);
                 if(prog>=1) { scorePoint(side); resetHold(); }
             }
         }
         function resetHold(){ isHolding=false; holdStart=0; }
+        
+        function drawHoldRing(x,y,p,side) {
+            const c = side==='left'?'#FF2E63':'#08D9D6';
+            ctx.save();
+            ctx.translate(x, y);
+            ctx.scale(-1, 1); 
+            
+            ctx.beginPath(); ctx.arc(0,0,60,0,2*Math.PI); 
+            ctx.strokeStyle='rgba(255,255,255,0.2)'; ctx.lineWidth=6; ctx.stroke();
+            
+            ctx.beginPath(); 
+            ctx.arc(0,0,60,-0.5*Math.PI,-0.5*Math.PI+(2*Math.PI*p)); 
+            ctx.strokeStyle=c; ctx.lineWidth=6; ctx.lineCap='round'; 
+            ctx.shadowColor=c; ctx.shadowBlur=15; ctx.stroke();
+            
+            ctx.restore();
+        }
+
+        function drawCenterLine() {
+            const mid = canvas.width/2; const g = ctx.createLinearGradient(mid,0,mid,canvas.height);
+            g.addColorStop(0,"rgba(255,255,255,0)"); g.addColorStop(0.5,"rgba(255,255,255,0.3)"); g.addColorStop(1,"rgba(255,255,255,0)");
+            ctx.beginPath(); ctx.moveTo(mid,0); ctx.lineTo(mid,canvas.height); ctx.strokeStyle=g; ctx.lineWidth=1; ctx.stroke();
+        }
 
         document.addEventListener('dblclick',e=>{
             if(e.target.tagName!=='BUTTON' && e.target.tagName!=='INPUT' && !e.target.closest('.select-zone') && !e.target.closest('.switch')) {
