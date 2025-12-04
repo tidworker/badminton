@@ -379,7 +379,7 @@
             </div>
 
             <div class="settings-row">
-                <div class="settings-label">預設開啟相機</div>
+                <div class="settings-label">錄影畫面</div>
                 <div class="settings-control">
                      <label class="switch">
                         <input type="checkbox" id="set-cam-default">
@@ -389,7 +389,7 @@
             </div>
 
             <div class="settings-row">
-                <div class="settings-label">預設顯示姓名</div>
+                <div class="settings-label">顯示名稱</div>
                 <div class="settings-control">
                      <label class="switch">
                         <input type="checkbox" id="set-name-default">
@@ -399,7 +399,7 @@
             </div>
 
             <div class="modal-buttons" style="margin-top: 30px;">
-                <button class="modal-btn btn-confirm" onclick="saveAndCloseSettings()">SAVE & CLOSE</button>
+                <button class="modal-btn btn-confirm" onclick="saveAndCloseSettings()">SAVE / CLOSE</button>
             </div>
         </div>
     </div>
@@ -667,8 +667,7 @@
                 tutorialList.innerHTML = `
                     <li>1. 站在鏡頭前，<strong>全身</strong>入鏡。</li>
                     <li>2. 持續<strong>舉手2秒</strong>感應得分。</li>
-                    <li>3. 畫面<strong>左邊</strong>舉手 = 左隊得分。</li>
-                    <li>4. 畫面<strong>右邊</strong>舉手 = 右隊得分。</li>`;
+                    <li>3. 畫面<strong>左邊</strong>舉手 = 左隊得分。</li>`;
             } else {
                 tutorialTitle.innerText = "手動模式教學";
                 tutorialList.innerHTML = `
