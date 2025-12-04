@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>BADMINTON - ScoreBoard</title>
+    <title>BADMINTON - Team Suffix TTS</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -16,18 +16,14 @@
 
     <style>
         :root {
-            /* --- 核心顏色定義 --- */
             --color-red: #FF2E63;   
             --color-blue: #08D9D6; 
-
             --color-txt-left: var(--color-red);
             --color-txt-right: var(--color-blue);
-
             --p-left-1: var(--color-red);    
             --p-left-2: var(--color-blue);   
             --p-right-1: var(--color-blue);  
             --p-right-2: var(--color-red);   
-
             --font-main: 'Kanit', sans-serif;
             --score-size-normal: 22vw; 
             --score-size-huge: 32vw; 
@@ -43,8 +39,7 @@
             user-select: none; touch-action: none; 
         }
 
-        /* --- Portrait Lock (保留但修改邏輯) --- */
-        /* 因為輸入介面支援直向，這裡只針對遊戲進行中鎖定 */
+        /* --- Portrait Lock --- */
         #portrait-lock {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: #000; z-index: 9999; display: none; 
@@ -63,7 +58,6 @@
         @keyframes rotate-anim { 0% { transform: rotate(0deg); } 40% { transform: rotate(90deg); } 100% { transform: rotate(90deg); } }
         
         @media screen and (orientation: portrait) {
-            /* 只有在需要橫向的頁面才顯示鎖定提示 */
             body.require-landscape #portrait-lock { display: flex; }
             body.require-landscape #game-container, 
             body.require-landscape #server-select-screen { display: none !important; }
@@ -76,7 +70,7 @@
             display: flex; justify-content: center; align-items: center;
             flex-direction: column; transition: opacity 0.5s;
             overflow-y: auto; overflow-x: hidden;
-            padding: 20px; /* 增加內距避免貼邊 */
+            padding: 20px;
         }
         #server-select-screen, #winner-screen, #name-input-screen { display: none; } 
 
@@ -99,7 +93,7 @@
 
         /* AI Toggle */
         .ai-toggle-container {
-            margin-top: 40px; display: flex; align-items: center; justify-content: center; gap: 15px;
+            margin-top: 30px; display: flex; align-items: center; justify-content: center; gap: 15px;
             opacity: 0.7; transition: opacity 0.3s;
         }
         .ai-toggle-container:hover { opacity: 1; }
@@ -118,7 +112,7 @@
         input:checked + .slider:before { transform: translateX(28px); }
 
         /* --- Modals --- */
-        #ai-warning-modal, #tutorial-modal {
+        #ai-warning-modal, #tutorial-modal, #settings-modal {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.9); z-index: 9999;
             display: none; justify-content: center; align-items: center;
@@ -131,11 +125,10 @@
             padding: 40px; border-radius: 20px; text-align: center;
             max-width: 550px; width: 100%;
             box-shadow: 0 0 40px rgba(255, 255, 255, 0.15);
+            max-height: 90vh; overflow-y: auto;
         }
         
-        #tutorial-modal .modal-box {
-            background: #000; border: none; box-shadow: none;
-        }
+        #tutorial-modal .modal-box { background: #000; border: none; box-shadow: none; }
 
         .modal-title {
             font-size: 2.5rem; font-weight: 900; color: #fff;
@@ -170,94 +163,59 @@
         }
         .btn-mode:hover { border-color: #fff; background: rgba(255,255,255,0.1); transform: scale(1.05); box-shadow: 0 0 20px rgba(255,255,255,0.2); }
 
-        /* --- Name Input Screen (RWD Revised) --- */
-        /* Flex wrapper for the two columns */
+        /* --- Settings Styles --- */
+        .settings-row {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 25px; border-bottom: 1px solid rgba(255,255,255,0.1);
+            padding-bottom: 15px;
+        }
+        .settings-label { font-size: 1.2rem; font-weight: bold; text-align: left; width: 40%; }
+        .settings-control { width: 55%; display: flex; justify-content: flex-end; align-items: center; }
+        
+        input[type=range] { -webkit-appearance: none; width: 100%; background: transparent; }
+        input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; height: 20px; width: 20px; border-radius: 50%; background: #fff; margin-top: -8px; cursor: pointer; }
+        input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 4px; cursor: pointer; background: #555; border-radius: 2px; }
+        
+        .val-display { font-size: 0.9rem; margin-left: 10px; width: 40px; text-align: right; color: #aaa; }
+
+        /* --- Name Input Screen --- */
         #name-inputs-wrapper { 
-            display: flex; 
-            gap: 20px; 
-            margin-bottom: 20px; 
-            justify-content: center; 
-            width: 100%; 
-            max-width: 1000px;
+            display: flex; gap: 20px; margin-bottom: 20px; justify-content: center; width: 100%; max-width: 1000px;
         }
-        
-        /* Team Column Styling (Card Style) */
         .team-input-col { 
-            display: flex; 
-            flex-direction: column; 
-            gap: 15px; 
-            align-items: center; 
-            width: 100%; 
-            flex: 1; /* Equal width */
-            
-            /* Card Look */
-            background: rgba(255,255,255,0.05);
-            padding: 20px;
-            border-radius: 20px;
-            border: 1px solid rgba(255,255,255,0.1);
+            display: flex; flex-direction: column; gap: 15px; align-items: center; width: 100%; flex: 1; 
+            background: rgba(255,255,255,0.05); padding: 20px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1);
         }
-
         .team-title { 
-            font-size: 1.8rem; font-weight: 900; letter-spacing: 2px; margin-bottom: 0px; font-style: italic;
-            text-shadow: 0 0 10px currentColor;
+            font-size: 1.8rem; font-weight: 900; letter-spacing: 2px; margin-bottom: 0px; font-style: italic; text-shadow: 0 0 10px currentColor;
         }
-        
-        .input-wrapper {
-            position: relative; width: 100%; display: flex; flex-direction: column; align-items: center;
-        }
-
+        .input-wrapper { position: relative; width: 100%; display: flex; flex-direction: column; align-items: center; }
         .input-box {
-            background: rgba(0, 0, 0, 0.5); 
-            border: 1px solid rgba(255,255,255,0.3); 
-            border-radius: 12px;
+            background: rgba(0, 0, 0, 0.5); border: 1px solid rgba(255,255,255,0.3); border-radius: 12px;
             color: #fff; font-family: var(--font-main); font-size: 1rem; font-weight: bold;
-            width: 100%; max-width: 280px; /* Max width for aesthetics */
-            text-align: center; padding: 10px;
+            width: 100%; max-width: 280px; text-align: center; padding: 10px;
             text-transform: uppercase; outline: none; transition: all 0.3s;
         }
-        .input-box::placeholder { color: rgba(255,255,255,0.3); font-weight: normal; }
         .input-box:focus { background: rgba(255, 255, 255, 0.1); border-color: #fff; box-shadow: 0 0 15px rgba(255,255,255,0.2); }
         
-        /* --- RWD Logic for Inputs --- */
-        /* Landscape (Default/Large Screen) */
         @media screen and (orientation: landscape) {
             #name-inputs-wrapper { flex-direction: row; align-items: flex-start; }
-            #name-input-screen { justify-content: center; } /* Center vertically */
+            #name-input-screen { justify-content: center; } 
         }
-
-        /* Portrait (Mobile Vertical) */
         @media screen and (orientation: portrait) {
             #name-inputs-wrapper { flex-direction: column; align-items: stretch; }
-            #name-input-screen { justify-content: center; padding-top: 0px; } /* Push top to avoid clutter */
+            #name-input-screen { justify-content: center; padding-top: 0px; }
             .team-input-col { width: 100%; }
         }
 
         /* History Dropdown */
         .history-dropdown {
-            position: absolute;
-            top: 105%; left: 50%; transform: translateX(-50%);
-            width: 100%; max-width: 280px;
-            background: rgba(20,20,20,0.98);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 12px;
-            z-index: 100;
-            max-height: 180px; overflow-y: auto;
-            display: none;
-            flex-direction: column;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.9);
+            position: absolute; top: 105%; left: 50%; transform: translateX(-50%); width: 100%; max-width: 280px;
+            background: rgba(20,20,20,0.98); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 12px; z-index: 100;
+            max-height: 180px; overflow-y: auto; display: none; flex-direction: column; box-shadow: 0 10px 30px rgba(0,0,0,0.9);
         }
         .history-dropdown.show { display: flex; }
-
-        .history-item {
-            padding: 10px;
-            color: rgba(255,255,255,0.9);
-            font-size: 1rem;
-            text-align: center;
-            cursor: pointer;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-            transition: background 0.2s;
-        }
-        .history-item:last-child { border-bottom: none; }
+        .history-item { padding: 10px; color: rgba(255,255,255,0.9); font-size: 1rem; text-align: center; cursor: pointer; border-bottom: 1px solid rgba(255,255,255,0.1); }
         .history-item:hover { background: rgba(255,255,255,0.2); color: #fff; }
         .history-item.deleting { background: #ff2e63; color: #fff; }
 
@@ -294,6 +252,8 @@
         /* --- Game --- */
         #game-container { position: relative; width: 100%; height: 100%; transition: background 0.5s; background: radial-gradient(circle at center, #1a1a1a 0%, #000 100%); display: none; }
         body.mode-blackout #game-container { background: #000; }
+        
+        /* Front Cam Mirror */
         video, canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain; transform: scaleX(-1); transition: opacity 0.5s ease; }
         body.mode-blackout video { opacity: 0; }
 
@@ -304,17 +264,12 @@
         #bar-left-bottom { bottom: 0; left: 0; border-top-right-radius: 10px; }
         #bar-right-top { top: 0; right: 0; border-bottom-left-radius: 10px; }
         #bar-right-bottom { bottom: 0; right: 0; border-top-left-radius: 10px; }
-        
         .bar-active { opacity: 1; background-color: var(--bar-color); box-shadow: 0 0 50px 15px var(--bar-color); width: 15px; }
         .bar-partner { opacity: 0.3; background-color: var(--bar-color); box-shadow: 0 0 10px 2px var(--bar-color); width: 10px; }
 
         /* --- Name Labels --- */
         .name-label {
-            position: absolute; 
-            font-size: 2.5rem; font-weight: 900; color: #fff; 
-            text-shadow: none; z-index: 15; pointer-events: none;
-            text-transform: uppercase;
-            opacity: 0; transition: opacity 0.2s;
+            position: absolute; font-size: 2.5rem; font-weight: 900; color: #fff; text-shadow: none; z-index: 15; pointer-events: none; text-transform: uppercase; opacity: 0; transition: opacity 0.2s;
         }
         .name-visible { opacity: 1; }
         #name-lt { top: 25%; left: 30px; }
@@ -326,22 +281,26 @@
         #ui-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 10; display: flex; flex-direction: column; justify-content: center; }
         
         #bottom-controls { 
-            position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%); 
-            pointer-events: auto; z-index: 20; 
-            display: flex; gap: 15px; justify-content: center; flex-wrap: wrap; width: 95%;
-            transition: opacity 0.5s ease; opacity: 0;
+            position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%); pointer-events: auto; z-index: 20; 
+            display: flex; gap: 15px; justify-content: center; flex-wrap: wrap; width: 95%; transition: opacity 0.5s ease; opacity: 0;
         }
         .controls-visible #bottom-controls { opacity: 1; }
 
         #serve-arrow-svg { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 90px; height: 90px; opacity: 0; transition: all 0.3s; z-index: 100; filter: drop-shadow(0 0 10px rgba(0,0,0,0.5)); }
-        .svg-arrow-left { fill: var(--color-txt-left); transform: translate(-50%, -50%) rotate(180deg) !important; opacity: 1 !important; filter: drop-shadow(0 0 30px var(--color-txt-left)) drop-shadow(0 0 30px var(--color-txt-left)) !important;
-}
-        .svg-arrow-right { fill: var(--color-txt-right); transform: translate(-50%, -50%) rotate(0deg) !important; opacity: 1 !important; filter: drop-shadow(0 0 30px var(--color-txt-right)) drop-shadow(0 0 30px var(--color-txt-right)) !important;
-}
+        .svg-arrow-left { fill: var(--color-txt-left); transform: translate(-50%, -50%) rotate(180deg) !important; opacity: 1 !important; filter: drop-shadow(0 0 30px var(--color-txt-left)) drop-shadow(0 0 30px var(--color-txt-left)) !important; }
+        .svg-arrow-right { fill: var(--color-txt-right); transform: translate(-50%, -50%) rotate(0deg) !important; opacity: 1 !important; filter: drop-shadow(0 0 30px var(--color-txt-right)) drop-shadow(0 0 30px var(--color-txt-right)) !important; }
 
         .btn { background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.3); color: rgba(255,255,255,0.8); padding: 8px 20px; font-family: var(--font-main); font-weight: 600; font-size: 12px; letter-spacing: 2px; text-transform: uppercase; cursor: pointer; transition: all 0.3s; backdrop-filter: blur(4px); border-radius: 4px; }
         .btn:hover { background: rgba(255,255,255,0.1); border-color: #fff; color: #fff; }
         #btn-exit:hover { border-color: #ff5555; color: #ff5555; }
+        
+        .btn-settings { 
+            background: transparent; border: 2px solid rgba(255,255,255,0.3); 
+            color: #fff; font-size: 1.2rem; padding: 10px 30px; border-radius: 30px; 
+            cursor: pointer; transition: all 0.3s; margin-top: 30px; 
+            font-weight: bold; font-family: var(--font-main); 
+        }
+        .btn-settings:hover { border-color: #fff; background: rgba(255,255,255,0.1); }
 
         .scoreboard-row { display: flex; justify-content: space-between; align-items: center; padding: 30px 60px; width: 100%; height: 100%; box-sizing: border-box; }
         body.mode-blackout .scoreboard-row { padding: 0 20px; }
@@ -398,6 +357,52 @@
             </div>
         </div>
     </div>
+    
+    <div id="settings-modal">
+        <div class="modal-box">
+            <div class="modal-title">SETTINGS</div>
+            
+            <div class="settings-row">
+                <div class="settings-label">語音音量 (Volume)</div>
+                <div class="settings-control">
+                    <input type="range" id="set-volume" min="0" max="1" step="0.1">
+                    <span class="val-display" id="val-volume">1.0</span>
+                </div>
+            </div>
+
+            <div class="settings-row">
+                <div class="settings-label">語音語速 (Speed)</div>
+                <div class="settings-control">
+                    <input type="range" id="set-rate" min="0.5" max="2" step="0.1">
+                    <span class="val-display" id="val-rate">1.2</span>
+                </div>
+            </div>
+
+            <div class="settings-row">
+                <div class="settings-label">預設開啟相機</div>
+                <div class="settings-control">
+                     <label class="switch">
+                        <input type="checkbox" id="set-cam-default">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="settings-row">
+                <div class="settings-label">預設顯示姓名</div>
+                <div class="settings-control">
+                     <label class="switch">
+                        <input type="checkbox" id="set-name-default">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="modal-buttons" style="margin-top: 30px;">
+                <button class="modal-btn btn-confirm" onclick="saveAndCloseSettings()">SAVE & CLOSE</button>
+            </div>
+        </div>
+    </div>
 
     <div id="start-screen">
         <div class="start-container">
@@ -411,6 +416,7 @@
                 <button class="btn-mode" onclick="selectMode('singles')">SINGLES</button>
                 <button class="btn-mode" onclick="selectMode('doubles')">DOUBLES</button>
             </div>
+            
             <div class="ai-toggle-container">
                 <span class="ai-label">AI ASSIST</span>
                 <label class="switch">
@@ -418,6 +424,8 @@
                     <span class="slider"></span>
                 </label>
             </div>
+
+            <button class="btn-settings" onclick="openSettings()">SETTINGS</button>
         </div>
     </div>
 
@@ -495,6 +503,22 @@
     </div>
 
     <script>
+        // --- 設定與變數 ---
+        let gameSettings = {
+            volume: 1.0,
+            rate: 1.2,
+            defaultCam: true,
+            defaultNames: true
+        };
+
+        const SETTINGS_KEY = 'badminton_settings_v3';
+        const savedSettings = localStorage.getItem(SETTINGS_KEY);
+        if (savedSettings) {
+            try {
+                gameSettings = { ...gameSettings, ...JSON.parse(savedSettings) };
+            } catch(e) {}
+        }
+        
         const video = document.getElementById('video');
         const canvas = document.getElementById('output');
         const ctx = canvas.getContext('2d');
@@ -507,6 +531,7 @@
         const winnerScreen = document.getElementById('winner-screen');
         const gameContainer = document.getElementById('game-container');
         const uiLayer = document.getElementById('ui-layer');
+        const settingsModal = document.getElementById('settings-modal');
         
         const btnCam = document.getElementById('btn-cam');
         const btnNames = document.getElementById('btn-names');
@@ -519,6 +544,14 @@
         const tutorialModal = document.getElementById('tutorial-modal');
         const tutorialTitle = document.getElementById('tutorial-title');
         const tutorialList = document.getElementById('tutorial-list');
+
+        // Settings Elements
+        const elVol = document.getElementById('set-volume');
+        const valVol = document.getElementById('val-volume');
+        const elRate = document.getElementById('set-rate');
+        const valRate = document.getElementById('val-rate');
+        const elCamDef = document.getElementById('set-cam-default');
+        const elNameDef = document.getElementById('set-name-default');
 
         const bars = {
             lt: document.getElementById('bar-left-top'),
@@ -551,35 +584,59 @@
         let tempSelectedMode = '';
         let smoothX = 0; let smoothY = 0;
 
-        // --- 強制鎖定設定變數 ---
-        let appSettings = {
-            width: 480,   // 360p 寬度
-            height: 360,  // 360p 高度
-            fps: 15       // 鎖定 15 FPS
-        };
+        let appSettings = { width: 480, height: 360, fps: 15 };
         
         const STORAGE_KEY = 'badminton_player_names';
         let historyList = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
-
-        const audioLeft = new Audio('red.mp3'); const audioRight = new Audio('blue.mp3');
         let playerNames = { l1: "", l2: "", r1: "", r2: "" };
 
-        // --- Wake Lock Logic (防止螢幕關閉) ---
         let wakeLock = null;
         async function requestWakeLock() {
             try {
                 if ('wakeLock' in navigator) {
                     wakeLock = await navigator.wakeLock.request('screen');
                 }
-            } catch (err) {
-                console.error(`${err.name}, ${err.message}`);
-            }
+            } catch (err) { console.error(err); }
         }
         document.addEventListener('visibilitychange', async () => {
-            if (wakeLock !== null && document.visibilityState === 'visible') {
-                await requestWakeLock();
-            }
+            if (wakeLock !== null && document.visibilityState === 'visible') { await requestWakeLock(); }
         });
+
+        // --- Settings Logic ---
+        function openSettings() {
+            elVol.value = gameSettings.volume;
+            valVol.innerText = gameSettings.volume;
+            elRate.value = gameSettings.rate;
+            valRate.innerText = gameSettings.rate;
+            elCamDef.checked = gameSettings.defaultCam;
+            elNameDef.checked = gameSettings.defaultNames;
+            settingsModal.style.display = 'flex';
+        }
+
+        function saveAndCloseSettings() {
+            gameSettings.volume = parseFloat(elVol.value);
+            gameSettings.rate = parseFloat(elRate.value);
+            gameSettings.defaultCam = elCamDef.checked;
+            gameSettings.defaultNames = elNameDef.checked;
+            localStorage.setItem(SETTINGS_KEY, JSON.stringify(gameSettings));
+            settingsModal.style.display = 'none';
+        }
+
+        elVol.addEventListener('input', (e) => valVol.innerText = e.target.value);
+        elRate.addEventListener('input', (e) => valRate.innerText = e.target.value);
+
+        // --- TTS Voice Finder (Auto Female Chinese) ---
+        function getPreferredVoice() {
+            const voices = window.speechSynthesis.getVoices();
+            // Priority: Female Chinese voices
+            let target = voices.find(v => (v.lang.includes('zh') || v.lang.includes('CN') || v.lang.includes('TW')) && 
+                (v.name.includes('Google') || v.name.includes('Meijia') || v.name.includes('Yating') || v.name.includes('Siri') || v.name.includes('Sinji') || v.name.includes('Ting-Ting')));
+            
+            if (!target) target = voices.find(v => (v.lang.includes('zh') || v.lang.includes('CN') || v.lang.includes('TW')) && v.name.toLowerCase().includes('female'));
+            if (!target) target = voices.find(v => v.lang.includes('zh') || v.lang.includes('CN') || v.lang.includes('TW'));
+            return target;
+        }
+        window.speechSynthesis.getVoices();
 
         // --- Warning Logic ---
         aiCheckbox.addEventListener('change', (e) => {
@@ -605,7 +662,6 @@
 
         function selectMode(mode) {
             tempSelectedMode = mode;
-            
             if (isAIMode) {
                 tutorialTitle.innerText = "AI 模式教學";
                 tutorialList.innerHTML = `
@@ -620,7 +676,6 @@
                     <li>2. <strong>向上滑動</strong>：增加分數 +1。</li>
                     <li>3. <strong>向下滑動</strong>：減少分數 -1。</li>`;
             }
-
             startScreen.style.display = 'none';
             tutorialModal.style.display = 'flex';
         }
@@ -638,10 +693,7 @@
         function goToNameInput(mode) {
             gameMode = mode;
             nameInputScreen.style.display = 'flex';
-            
-            // 允許輸入時直向操作，暫時移除強制橫向
             bodyEl.classList.remove('require-landscape');
-            
             generateNameInputs();
         }
 
@@ -710,7 +762,7 @@
             input.className = 'input-box';
             input.id = 'input-' + idSuffix;
             input.placeholder = placeholder;
-            input.autocomplete = 'off'; // 防止瀏覽器原生自動完成擋住
+            input.autocomplete = 'off';
             input.oninput = function() { validateNameInput(this); };
             
             const historyDropdown = document.createElement('div');
@@ -743,7 +795,6 @@
                     inputEl.value = name;
                     container.classList.remove('show');
                 };
-                
                 let pressTimer;
                 const startPress = () => {
                     pressTimer = setTimeout(() => {
@@ -763,7 +814,6 @@
                 item.addEventListener('mouseup', endPress);
                 item.addEventListener('touchend', endPress);
                 item.addEventListener('mouseleave', endPress);
-                
                 container.appendChild(item);
             });
         }
@@ -807,10 +857,8 @@
         function submitNames() {
             const l1Val = document.getElementById('input-L1').value;
             const r1Val = document.getElementById('input-R1').value;
-            
-            const l1 = l1Val || " ";
-            const r1 = r1Val || " ";
-            
+            const l1 = l1Val || "";
+            const r1 = r1Val || "";
             saveToHistory(l1Val);
             saveToHistory(r1Val);
 
@@ -819,8 +867,8 @@
             if (gameMode === 'doubles') {
                 const l2Val = document.getElementById('input-L2').value;
                 const r2Val = document.getElementById('input-R2').value;
-                playerNames.l2 = l2Val || " ";
-                playerNames.r2 = r2Val || " ";
+                playerNames.l2 = l2Val || "";
+                playerNames.r2 = r2Val || "";
                 saveToHistory(l2Val);
                 saveToHistory(r2Val);
             } else {
@@ -829,27 +877,30 @@
             
             nameInputScreen.style.display = 'none';
             selectScreen.style.display = 'block';
-            
-            // 進入選邊介面後，強制橫向
             bodyEl.classList.add('require-landscape');
         }
 
         function initSystem(firstServer) {
             selectScreen.style.display = 'none';
-            
             requestWakeLock();
             
             currentServer = firstServer;
             scores = { left: 0, right: 0 };
             leftPositions = [1, 2]; rightPositions = [1, 2];
-            areNamesVisible = true;
-            btnNames.innerText = "HIDE NAMES";
+
+            areNamesVisible = gameSettings.defaultNames;
+            btnNames.innerText = areNamesVisible ? "HIDE NAMES" : "SHOW NAMES";
 
             if (isAIMode) {
-                isCamVisible = true;
-                bodyEl.classList.remove('mode-blackout');
+                isCamVisible = gameSettings.defaultCam;
+                if(isCamVisible) {
+                    bodyEl.classList.remove('mode-blackout');
+                    btnCam.innerText = "HIDE CAMERA";
+                } else {
+                    bodyEl.classList.add('mode-blackout');
+                    btnCam.innerText = "SHOW CAMERA";
+                }
                 btnCam.style.display = 'block';
-                btnCam.innerText = "HIDE CAMERA";
             } else {
                 isCamVisible = false;
                 bodyEl.classList.add('mode-blackout');
@@ -894,16 +945,13 @@
                 cancelAnimationFrame(rafId);
                 clearTimeout(rafId); 
             }
-
             if (video.srcObject) {
                 video.srcObject.getTracks().forEach(track => track.stop());
                 video.srcObject = null;
             }
-
             if (wakeLock !== null) {
                 wakeLock.release().then(() => { wakeLock = null; });
             }
-
             gameContainer.style.display = 'none';
             winnerScreen.style.display = 'none';
             startScreen.style.display = 'flex';
@@ -920,11 +968,17 @@
                 tf.env().set('WEBGL_DELETE_TEXTURE_THRESHOLD', 0);
                 await tf.setBackend('webgl'); await tf.ready();
                 
-                // 使用鎖定的解析度 (480x360)
-                const stream = await navigator.mediaDevices.getUserMedia({
-                    'audio': false, 'video': { facingMode: 'user', width: { ideal: appSettings.width }, height: { ideal: appSettings.height } }
-                });
+                let constraints = {
+                    audio: false,
+                    video: { 
+                        facingMode: 'user', 
+                        width: { ideal: appSettings.width }, 
+                        height: { ideal: appSettings.height } 
+                    }
+                };
+                const stream = await navigator.mediaDevices.getUserMedia(constraints);
                 video.srcObject = stream;
+                
                 video.onloadedmetadata = () => {
                     video.width = video.videoWidth; video.height = video.videoHeight;
                     canvas.width = video.videoWidth; canvas.height = video.videoHeight;
@@ -932,8 +986,12 @@
                     if(isModelLoaded) { loader.style.display='none'; startGameLoop(); }
                     else loadModel();
                 };
-            } catch (e) { alert("Camera Error"); exitGame(); }
+            } catch (e) { 
+                alert("Camera Error: " + e.message); 
+                exitGame(); 
+            }
         }
+
         async function loadModel() {
             statusText.innerText = "CALIBRATING...";
             try {
@@ -967,7 +1025,6 @@
             else {
                 scores[side] += delta;
                 if (scores[side] < 0) scores[side] = 0;
-                
                 if (delta < 0 && side === currentServer) {
                       if (gameMode === 'doubles') {
                           if (side === 'left') {
@@ -981,15 +1038,90 @@
                 updateScoreUI(side); updatePositionsUI();
             }
         }
+
+        // --- Enhanced TTS Function ---
+        function speakScore(side) {
+            window.speechSynthesis.cancel();
+            
+            let text = "";
+            const lName = playerNames.l1.trim();
+            const rName = playerNames.r1.trim();
+            
+            // Determine suffix based on mode (Adds '隊' only for doubles if name exists)
+            const teamSuffix = (gameMode === 'doubles') ? "隊" : "";
+
+            // 1. Announce Point
+            if (side === 'left') {
+                if (lName && lName.length > 0) text += `${lName}${teamSuffix}得分`;
+                else text += "左方得分";
+            } else {
+                if (rName && rName.length > 0) text += `${rName}${teamSuffix}得分`;
+                else text += "右方得分";
+            }
+            
+            // 2. Announce Score
+            text += `，${scores.left} 比 ${scores.right}`;
+
+            // 3. Doubles Announce Server/Receiver
+            if (gameMode === 'doubles') {
+                const servingSide = currentServer; 
+                const score = scores[servingSide];
+                const isEven = (score % 2 === 0);
+
+                const l1 = playerNames.l1.trim() || "左1"; 
+                const l2 = playerNames.l2.trim() || "左2"; 
+                const r1 = playerNames.r1.trim() || "右1"; 
+                const r2 = playerNames.r2.trim() || "右2"; 
+
+                // Current Names at Positions based on rotation
+                const nameLT = leftPositions[1] === 1 ? l1 : l2;
+                const nameLB = leftPositions[0] === 1 ? l1 : l2;
+                const nameRT = rightPositions[0] === 1 ? r1 : r2;
+                const nameRB = rightPositions[1] === 1 ? r1 : r2;
+
+                let serverName = "";
+                let receiverName = "";
+
+                if (servingSide === 'left') {
+                    if (isEven) {
+                        // Left serves from Right Court (LB) to Right's Right Court (RT)
+                        serverName = nameLB; receiverName = nameRT;
+                    } else {
+                        // Left serves from Left Court (LT) to Right's Left Court (RB)
+                        serverName = nameLT; receiverName = nameRB;
+                    }
+                } else { 
+                    if (isEven) {
+                        // Right serves from Right Court (RT) to Left's Right Court (LB)
+                        serverName = nameRT; receiverName = nameLB;
+                    } else {
+                        // Right serves from Left Court (RB) to Left's Left Court (LT)
+                        serverName = nameRB; receiverName = nameLT;
+                    }
+                }
+                text += `，${serverName}發球，${receiverName}接發球`;
+            }
+
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.rate = gameSettings.rate;
+            utterance.volume = gameSettings.volume;
+            
+            const voice = getPreferredVoice();
+            if (voice) utterance.voice = voice;
+            else utterance.lang = 'zh-TW';
+
+            window.speechSynthesis.speak(utterance);
+        }
+
         function scorePoint(side) {
             handleScorePoint(side);
-            if (side === 'left') { audioLeft.currentTime = 0; audioLeft.play().catch(()=>{}); } 
-            else { audioRight.currentTime = 0; audioRight.play().catch(()=>{}); }
+            speakScore(side);
             const color = side === 'left' ? 'rgba(255, 46, 99, 0.4)' : 'rgba(8, 217, 214, 0.4)';
             ctx.fillStyle = color; ctx.fillRect(0, 0, canvas.width, canvas.height);
             if (checkWinner(side)) return;
             startCooldown(COOLDOWN_DURATION);
         }
+
         function handleScorePoint(winningSide) {
             if (gameMode === 'doubles') {
                 if (winningSide === currentServer) {
@@ -1118,11 +1250,7 @@
 
         async function detectLoop() {
             if(!isGameActive) return;
-
-            // 使用設定的 FPS (15) 計算延遲
-            setTimeout(() => {
-                rafId = requestAnimationFrame(runDetection); 
-            }, 1000 / appSettings.fps); 
+            setTimeout(() => { rafId = requestAnimationFrame(runDetection); }, 1000 / appSettings.fps); 
         }
 
         async function runDetection() {
@@ -1141,7 +1269,6 @@
                     }
                 } catch(e){ console.error(e); return; }
             } else { ctx.clearRect(0,0,canvas.width,canvas.height); }
-            
             detectLoop();
         }
 
@@ -1152,7 +1279,10 @@
             if(lw && lw.score>0.3 && lw.y < kp.find(k=>k.name==='left_ear').y) active=lw;
             else if(rw && rw.score>0.3 && rw.y < kp.find(k=>k.name==='right_ear').y) active=rw;
             if(!active) { resetHold(); return; }
+            
+            // 前鏡頭鏡像邏輯
             const side = active.x > midX ? 'left' : 'right';
+            
             if(!isHolding) { isHolding=true; holdStart=Date.now(); }
             else {
                 if(!isHolding) { smoothX = active.x; smoothY = active.y; }
@@ -1169,16 +1299,12 @@
             const c = side==='left'?'#FF2E63':'#08D9D6';
             ctx.save();
             ctx.translate(x, y);
-            ctx.scale(-1, 1); 
-            
             ctx.beginPath(); ctx.arc(0,0,60,0,2*Math.PI); 
             ctx.strokeStyle='rgba(255,255,255,0.2)'; ctx.lineWidth=6; ctx.stroke();
-            
             ctx.beginPath(); 
             ctx.arc(0,0,60,-0.5*Math.PI,-0.5*Math.PI+(2*Math.PI*p)); 
             ctx.strokeStyle=c; ctx.lineWidth=6; ctx.lineCap='round'; 
             ctx.shadowColor=c; ctx.shadowBlur=15; ctx.stroke();
-            
             ctx.restore();
         }
 
@@ -1189,7 +1315,7 @@
         }
 
         document.addEventListener('dblclick',e=>{
-            if(e.target.tagName!=='BUTTON' && e.target.tagName!=='INPUT' && !e.target.closest('.select-zone') && !e.target.closest('.switch') && !e.target.closest('.history-dropdown')) {
+            if(e.target.tagName!=='BUTTON' && e.target.tagName!=='INPUT' && !e.target.closest('.select-zone') && !e.target.closest('.switch') && !e.target.closest('.history-dropdown') && !e.target.closest('.settings-control') && !e.target.closest('#settings-modal')) {
                 if(!document.fullscreenElement) document.documentElement.requestFullscreen().catch(()=>{}); else document.exitFullscreen();
             }
         });
