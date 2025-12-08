@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>BADMINTON - Team Suffix TTS</title>
+    <title>BADMINTON - 8-BIT Style</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Kanit:ital,wght@0,300;0,600;0,900;1,900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
 
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-core"></script>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-converter"></script>
@@ -15,46 +15,103 @@
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/pose-detection"></script>
 
     <style>
+        /* 2. 中文像素字體 (說明用) */
+        @font-face {
+            font-family: 'Cubic 11';
+            src: url('https://cdn.jsdelivr.net/gh/ACh-K/Cubic-11@1.100/fonts/ttf/Cubic_11_1.100_R.ttf') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+            font-display: swap;
+        }
+
         :root {
-            --color-red: #FF2E63;   
-            --color-blue: #08D9D6; 
-            --color-txt-left: var(--color-red);
-            --color-txt-right: var(--color-blue);
-            --p-left-1: var(--color-red);    
-            --p-left-2: var(--color-blue);   
-            --p-right-1: var(--color-blue);  
-            --p-right-2: var(--color-red);   
-            --font-main: 'Kanit', sans-serif;
-            --score-size-normal: 22vw; 
-            --score-size-huge: 32vw; 
+            /* 1P = 紅色, 2P = 藍色 */
+            --color-1p-main: #D32F2F; 
+            --color-1p-light: #FF5252;
+            
+            --color-2p-main: #1976D2; 
+            --color-2p-light: #448AFF;
+            
+            --color-txt-left: var(--color-1p-light);
+            --color-txt-right: var(--color-2p-light);
+            
+            --font-main: 'Press Start 2P', 'Cubic 11', cursive;
+            
+            --score-size-normal: 12vw; 
+            --score-size-huge: 20vw; 
+
+            /* 統一圓角與陰影 */
+            --ui-radius: 15px;
+            --ui-border: 4px solid #fff;
+            --ui-shadow: 6px 6px 0px rgba(0, 0, 0, 1); /* 實心黑陰影 */
         }
 
         * { box-sizing: border-box; }
 
         body { 
-            margin: 0; background: #000; color: #fff; 
+            margin: 0; 
+            background-color: #1a1a1a; 
+            background-image: 
+                linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+            background-size: 40px 40px;
+            color: #fff; 
             font-family: var(--font-main);
             overflow: hidden; width: 100vw; height: 100vh;
             display: flex; justify-content: center; align-items: center;
             user-select: none; touch-action: none; 
         }
 
-        /* --- Portrait Lock --- */
+        /* 閃爍轉場遮罩 */
+        #flash-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #fff; z-index: 99999;
+            opacity: 0; pointer-events: none; display: none;
+        }
+        #flash-overlay.active {
+            display: block;
+            animation: flash-anim 0.2s ease-out 4; /* 閃爍4次 */
+        }
+        @keyframes flash-anim {
+            0% { opacity: 0; }
+            50% { opacity: 0.1; }
+            100% { opacity: 0; }
+        }
+
+        /* 凍結操作遮罩 */
+        #input-blocker {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 99998; display: none; cursor: wait;
+        }
+
+        body::after {
+            content: " ";
+            display: block;
+            position: absolute;
+            top: 0; left: 0; bottom: 0; right: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            z-index: 9999;
+            background-size: 100% 4px, 6px 100%;
+            pointer-events: none;
+        }
+
         #portrait-lock {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: #000; z-index: 9999; display: none; 
+            background: #000; z-index: 9000; display: none; 
             flex-direction: column; justify-content: center; align-items: center;
             text-align: center; padding: 20px;
         }
-        .lock-title { font-size: 3rem; font-weight: 900; font-style: italic; letter-spacing: 5px; margin-bottom: 20px; color: #fff; }
+        .lock-title { font-size: 2rem; line-height: 1.5; margin-bottom: 20px; color: #fff; text-shadow: 4px 4px 0 #333; }
         .rotate-icon {
-            width: 60px; height: 100px; border: 4px solid #fff; border-radius: 10px;
-            animation: rotate-anim 2s infinite ease-in-out; margin-bottom: 30px; position: relative;
+            width: 80px; height: 120px; border: 6px solid #fff; border-radius: 15px;
+            animation: rotate-anim 2s infinite steps(4); margin-bottom: 30px; position: relative;
+            background: transparent; box-shadow: 8px 8px 0 #000;
         }
         .rotate-icon::before {
-            content: ''; position: absolute; top: 10px; left: 50%; transform: translateX(-50%); width: 4px; height: 4px; background: #fff; border-radius: 50%;
+            content: ''; position: absolute; top: 15px; left: 50%; transform: translateX(-50%); 
+            width: 8px; height: 8px; background: #fff; border-radius: 50%;
         }
-        .lock-subtitle { font-size: 1.2rem; opacity: 0.6; letter-spacing: 2px; color: #aaa; }
+        .lock-subtitle { font-size: 1rem; opacity: 0.8; line-height: 1.5; color: #ddd; }
         @keyframes rotate-anim { 0% { transform: rotate(0deg); } 40% { transform: rotate(90deg); } 100% { transform: rotate(90deg); } }
         
         @media screen and (orientation: portrait) {
@@ -63,141 +120,150 @@
             body.require-landscape #server-select-screen { display: none !important; }
         }
 
-        /* --- Screens --- */
         #start-screen, #server-select-screen, #winner-screen, #name-input-screen {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: #000; z-index: 5000;
+            background: rgba(0,0,0,0.9); z-index: 5000;
             display: flex; justify-content: center; align-items: center;
-            flex-direction: column; transition: opacity 0.5s;
-            overflow-y: auto; overflow-x: hidden;
-            padding: 20px;
+            flex-direction: column; 
+            overflow-y: auto; overflow-x: hidden; padding: 20px;
         }
         #server-select-screen, #winner-screen, #name-input-screen { display: none; } 
 
-        .start-container { text-align: center; width: 90%; max-width: 600px; padding: 20px; }
-        
+        .start-container { text-align: center; width: 95%; max-width: 700px; padding: 20px; }
         .main-title {
-            font-size: clamp(3rem, 10vw, 5rem); 
-            font-weight: 900; font-style: italic;
-            color: #fff; letter-spacing: 5px; margin: 0 0 10px 0;
-            text-shadow: 0 0 20px rgba(255,255,255,0.3);
-            line-height: 1;
+            font-size: clamp(2rem, 6vw, 4rem); line-height: 1.2; color: #FFFF00;
+            margin: 0 0 20px 0; text-shadow: 6px 6px 0px #D32F2F;
         }
-        
         .sub-title {
-            display: block; font-size: 1.5rem; font-weight: 600; letter-spacing: 8px;
-            margin-bottom: 50px; text-transform: uppercase;
+            display: block; font-size: 1rem; margin-top: 15px; margin-bottom: 40px; 
+            color: #fff; text-shadow: 2px 2px 0 #000;
         }
-        .txt-score { color: var(--color-red); text-shadow: 0 0 20px var(--color-red); }
-        .txt-board { color: var(--color-blue); text-shadow: 0 0 20px var(--color-blue); }
+        .txt-score { color: var(--color-1p-light); text-shadow: 2px 2px 0 #000; }
+        .txt-board { color: var(--color-2p-light); text-shadow: 2px 2px 0 #000; }
 
-        /* AI Toggle */
         .ai-toggle-container {
             margin-top: 30px; display: flex; align-items: center; justify-content: center; gap: 15px;
-            opacity: 0.7; transition: opacity 0.3s;
+            padding: 10px; background: #000;
+            border: var(--ui-border); border-radius: var(--ui-radius);
+            box-shadow: var(--ui-shadow);
         }
-        .ai-toggle-container:hover { opacity: 1; }
-        .ai-label { font-size: 1.2rem; font-weight: bold; color: #fff; letter-spacing: 1px; }
+        .ai-label { font-size: 1rem; color: #fff; }
         .switch { position: relative; display: inline-block; width: 60px; height: 30px; }
         .switch input { opacity: 0; width: 0; height: 0; }
         .slider {
             position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
-            background-color: #333; transition: .4s; border-radius: 30px; border: 1px solid #555;
+            background-color: #555; transition: 0s; border: 2px solid #fff; border-radius: 30px;
         }
         .slider:before {
-            position: absolute; content: ""; height: 24px; width: 24px; left: 3px; bottom: 2px;
-            background-color: white; transition: .4s; border-radius: 50%;
+            position: absolute; content: ""; height: 20px; width: 20px; left: 2px; bottom: 3px;
+            background-color: white; transition: 0s; border-radius: 50%; box-shadow: 1px 1px 0 #000;
         }
-        input:checked + .slider { background-color: var(--color-txt-right); border-color: var(--color-txt-right); }
-        input:checked + .slider:before { transform: translateX(28px); }
+        input:checked + .slider { background-color: var(--color-2p-main); }
+        input:checked + .slider:before { transform: translateX(30px); }
 
-        /* --- Modals --- */
         #ai-warning-modal, #tutorial-modal, #settings-modal {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.9); z-index: 9999;
-            display: none; justify-content: center; align-items: center;
-            padding: 20px;
+            background: rgba(0,0,0,0.8); z-index: 8000;
+            display: none; justify-content: center; align-items: center; padding: 20px;
         }
-        
         .modal-box {
-            background: #1a1a1a; 
-            border: 2px solid #fff; 
-            padding: 40px; border-radius: 20px; text-align: center;
-            max-width: 550px; width: 100%;
-            box-shadow: 0 0 40px rgba(255, 255, 255, 0.15);
+            background: #000080; border: var(--ui-border); 
+            padding: 30px 20px; border-radius: var(--ui-radius); text-align: center;
+            max-width: 600px; width: 100%; box-shadow: 10px 10px 0px #000;
             max-height: 90vh; overflow-y: auto;
         }
-        
-        #tutorial-modal .modal-box { background: #000; border: none; box-shadow: none; }
+        #tutorial-modal .modal-box { background: #000; }
 
         .modal-title {
-            font-size: 2.5rem; font-weight: 900; color: #fff;
-            margin-bottom: 25px; letter-spacing: 2px; text-transform: uppercase;
+            font-size: 1.5rem; color: #FFFF00; margin-bottom: 25px; text-transform: uppercase;
+            text-shadow: 3px 3px 0 #000; border-bottom: 2px dashed #fff; padding-bottom: 15px;
         }
         .modal-text {
-            font-size: 1.3rem; color: #ccc; line-height: 1.8; margin-bottom: 30px;
-            font-weight: 300; text-align: center;
+            font-size: 1.2rem; color: #fff; line-height: 1.8; margin-bottom: 30px; text-align: left;
         }
-        #tutorial-list { padding: 0; list-style: none; margin: 0 0 30px 0; text-align: center; }
-        #tutorial-list li { margin-bottom: 15px; }
-        #tutorial-list li strong { color: #fff; font-weight: 600; }
+        #tutorial-list { padding: 0; list-style: none; margin: 0 0 30px 0; text-align: left; padding-left: 20px; }
+        #tutorial-list li { margin-bottom: 15px; position: relative; }
+        #tutorial-list li::before { content: ">"; position: absolute; left: -20px; color: yellow; }
+        #tutorial-list li strong { color: #00FF00; }
 
-        .modal-buttons { display: flex; justify-content: center; gap: 20px; }
-        .modal-btn {
-            padding: 12px 40px; border-radius: 30px; font-family: var(--font-main);
-            font-weight: bold; font-size: 1.2rem; cursor: pointer; border: none;
-            transition: all 0.2s; min-width: 120px;
-            display: flex; justify-content: center; align-items: center;
+        .modal-buttons { display: flex; justify-content: center; gap: 20px; flex-wrap: wrap; }
+        
+        /* --- 通用按鈕樣式 (圓角 + 陰影) --- */
+        .modal-btn, .btn-mode, .btn-nav, .btn, .btn-settings {
+            font-family: var(--font-main); 
+            background: #000; color: #fff; 
+            cursor: pointer; 
+            text-transform: uppercase; position: relative;
+            border: var(--ui-border); 
+            border-radius: var(--ui-radius);
+            box-shadow: var(--ui-shadow);
+            transition: transform 0.05s; 
         }
-        .btn-cancel { background: #333; color: #fff; border: 1px solid #555; }
-        .btn-confirm { background: #fff; color: #000; }
-        .btn-confirm:hover { box-shadow: 0 0 20px rgba(255,255,255,0.5); }
-
-        .mode-btn-container { display: flex; gap: 30px; justify-content: center; width: 100%; flex-wrap: wrap; }
-        .btn-mode {
-            flex: 1; min-width: 160px;
-            font-family: var(--font-main); font-size: 2rem; font-weight: 900; font-style: italic;
-            color: #fff; background: transparent; border: 2px solid rgba(255,255,255,0.5); padding: 20px 0; 
-            border-radius: 12px; cursor: pointer; text-transform: uppercase;
-            text-shadow: 0 0 10px rgba(255,255,255,0.5); transition: all 0.3s;
+        
+        .modal-btn:active, .btn-mode:active, .btn-nav:active, .btn:active, .btn-settings:active, .select-zone:active {
+            transform: translate(4px, 4px);
+            box-shadow: 2px 2px 0px rgba(0,0,0,1);
         }
-        .btn-mode:hover { border-color: #fff; background: rgba(255,255,255,0.1); transform: scale(1.05); box-shadow: 0 0 20px rgba(255,255,255,0.2); }
+        
+        .modal-btn { padding: 15px 20px; font-size: 1rem; min-width: 120px; }
+        .btn-cancel { border-color: #999; color: #ccc; }
+        .btn-confirm { border-color: #fff; color: #FFFF00; }
+        
+        .mode-btn-container { display: flex; gap: 20px; justify-content: center; width: 100%; flex-wrap: wrap; margin-bottom: 20px; }
+        .btn-mode { flex: 1; min-width: 180px; font-size: 1.5rem; padding: 25px 10px; }
+        
+        /* 1P: 紅框白字 */
+        #btn-mode-1p { border-color: var(--color-1p-main); color: #fff; }
+        #btn-mode-1p:hover { background: var(--color-1p-main); }
+        
+        /* 2P: 藍框白字 */
+        #btn-mode-2p { border-color: var(--color-2p-main); color: #fff; }
+        #btn-mode-2p:hover { background: var(--color-2p-main); }
 
-        /* --- Settings Styles --- */
         .settings-row {
             display: flex; justify-content: space-between; align-items: center;
-            margin-bottom: 25px; border-bottom: 1px solid rgba(255,255,255,0.1);
-            padding-bottom: 15px;
+            margin-bottom: 25px; border-bottom: 2px dashed rgba(255,255,255,0.3); padding-bottom: 15px;
         }
-        .settings-label { font-size: 1.2rem; font-weight: bold; text-align: left; width: 40%; }
-        .settings-control { width: 55%; display: flex; justify-content: flex-end; align-items: center; }
+        .settings-label { font-size: 1rem; text-align: left; width: 45%; color: #fff; }
+        .settings-control { width: 50%; display: flex; justify-content: flex-end; align-items: center; }
         
         input[type=range] { -webkit-appearance: none; width: 100%; background: transparent; }
-        input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; height: 20px; width: 20px; border-radius: 50%; background: #fff; margin-top: -8px; cursor: pointer; }
-        input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 4px; cursor: pointer; background: #555; border-radius: 2px; }
-        
-        .val-display { font-size: 0.9rem; margin-left: 10px; width: 40px; text-align: right; color: #aaa; }
-
-        /* --- Name Input Screen --- */
-        #name-inputs-wrapper { 
-            display: flex; gap: 20px; margin-bottom: 20px; justify-content: center; width: 100%; max-width: 1000px;
+        input[type=range]::-webkit-slider-thumb { 
+            -webkit-appearance: none; height: 24px; width: 12px; background: #FFFF00; 
+            margin-top: -8px; cursor: pointer; border-radius: 4px;
+            border: 2px solid #000; box-shadow: 2px 2px 0 #000;
         }
+        input[type=range]::-webkit-slider-runnable-track { 
+            width: 100%; height: 8px; cursor: pointer; background: #fff; 
+            border: 2px solid #000; border-radius: 4px;
+        }
+        .val-display { font-size: 1rem; margin-left: 10px; width: 50px; text-align: right; color: #FFFF00; }
+
+        #name-inputs-wrapper { display: flex; gap: 20px; margin-bottom: 20px; justify-content: center; width: 100%; max-width: 1000px; }
         .team-input-col { 
             display: flex; flex-direction: column; gap: 15px; align-items: center; width: 100%; flex: 1; 
-            background: rgba(255,255,255,0.05); padding: 20px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1);
+            background: rgba(0,0,0,0.5); padding: 20px; 
+            border: var(--ui-border); border-radius: var(--ui-radius); box-shadow: var(--ui-shadow);
         }
-        .team-title { 
-            font-size: 1.8rem; font-weight: 900; letter-spacing: 2px; margin-bottom: 0px; font-style: italic; text-shadow: 0 0 10px currentColor;
-        }
+        .team-input-col:first-child .team-title { color: var(--color-1p-light); }
+        .team-input-col:last-child .team-title { color: var(--color-2p-light); }
+        .team-title { font-size: 1.2rem; margin-bottom: 10px; text-shadow: 2px 2px 0 #000; }
+        
         .input-wrapper { position: relative; width: 100%; display: flex; flex-direction: column; align-items: center; }
         .input-box {
-            background: rgba(0, 0, 0, 0.5); border: 1px solid rgba(255,255,255,0.3); border-radius: 12px;
-            color: #fff; font-family: var(--font-main); font-size: 1rem; font-weight: bold;
-            width: 100%; max-width: 280px; text-align: center; padding: 10px;
-            text-transform: uppercase; outline: none; transition: all 0.3s;
+            background: #000; color: #FFFF00; font-family: var(--font-main); font-size: 1rem; 
+            width: 100%; max-width: 300px; text-align: center; padding: 15px 45px 15px 45px; 
+            text-transform: uppercase; outline: none; transition: all 0.1s; 
+            border: var(--ui-border); border-radius: var(--ui-radius); box-shadow: 4px 4px 0 #000;
         }
-        .input-box:focus { background: rgba(255, 255, 255, 0.1); border-color: #fff; box-shadow: 0 0 15px rgba(255,255,255,0.2); }
-        
+        .input-box:focus { background: #222; }
+        .kb-icon {
+            position: absolute; right: 15px; top: 15px; /* Fixed pos relative to input */
+            width: 24px; height: 24px; display: none; cursor: pointer; z-index: 50; 
+        }
+        .kb-icon.show { display: flex; }
+        .kb-icon svg { width: 100%; height: 100%; fill: #fff; shape-rendering: crispEdges; }
+
         @media screen and (orientation: landscape) {
             #name-inputs-wrapper { flex-direction: row; align-items: flex-start; }
             #name-input-screen { justify-content: center; } 
@@ -208,140 +274,215 @@
             .team-input-col { width: 100%; }
         }
 
-        /* History Dropdown */
+        /* --- 下拉選單樣式 (限制高度 + 側邊把手) --- */
         .history-dropdown {
-            position: absolute; top: 105%; left: 50%; transform: translateX(-50%); width: 100%; max-width: 280px;
-            background: rgba(20,20,20,0.98); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 12px; z-index: 100;
-            max-height: 180px; overflow-y: auto; display: none; flex-direction: column; box-shadow: 0 10px 30px rgba(0,0,0,0.9);
+            position: absolute; top: 100%; left: 50%; transform: translateX(-50%); width: 100%; max-width: 300px;
+            background: #000; border-top: none; z-index: 100;
+            max-height: 260px; overflow-y: auto; 
+            display: none; flex-direction: column; 
+            border: 4px solid #fff; border-bottom-left-radius: 15px; border-bottom-right-radius: 15px;
+            box-shadow: 6px 6px 0 #000;
         }
+        .history-dropdown::-webkit-scrollbar {
+            width: 14px; 
+            background: #000;
+            border-left: 2px solid #fff;
+        }
+        .history-dropdown::-webkit-scrollbar-thumb {
+            background-color: #FFFF00; 
+            border: 2px solid #000;
+            border-radius: 0;
+            box-shadow: inset 1px 1px 0 #fff;
+        }
+        .history-dropdown::-webkit-scrollbar-track {
+            background: #222;
+        }
+
         .history-dropdown.show { display: flex; }
-        .history-item { padding: 10px; color: rgba(255,255,255,0.9); font-size: 1rem; text-align: center; cursor: pointer; border-bottom: 1px solid rgba(255,255,255,0.1); }
-        .history-item:hover { background: rgba(255,255,255,0.2); color: #fff; }
-        .history-item.deleting { background: #ff2e63; color: #fff; }
+        .history-item { 
+            padding: 15px; color: #fff; font-size: 1rem; text-align: center; cursor: pointer; border-bottom: 2px solid #333; flex-shrink: 0;
+        }
+        .history-item:hover { background: #fff; color: #000; }
+        .history-item.deleting { background: #ff0000; color: #fff; }
 
         .nav-btn-container { display: flex; gap: 20px; justify-content: center; width: 100%; flex-wrap: wrap; margin-top: 0px; padding-bottom: 20px;}
         .btn-nav {
-            font-family: var(--font-main); font-size: 1.2rem; font-weight: 900; font-style: italic;
-            color: #fff; background: #000; border: none; padding: 15px 40px; 
-            cursor: pointer; text-transform: uppercase; transition: all 0.3s;
-            border: 2px solid rgba(255,255,255,0.4); border-radius: 50px;
-            min-width: 140px; box-shadow: 0 0 15px rgba(0,0,0,0.5);
+            font-size: 1.2rem; padding: 15px 30px; background: #000; min-width: 160px;
         }
-        .btn-nav:hover { background: rgba(255,255,255,0.2); border-color: #fff; transform: scale(1.05); }
+        .btn-nav:hover { background: #333; color: #FFFF00; }
 
-        /* --- Server Select --- */
-        .split-select { display: flex; width: 100%; height: 100%; }
+        #server-select-screen {
+            justify-content: center;
+            align-items: center; 
+            display: none; 
+            flex-direction: column; 
+        }
+        .select-hint { 
+            position: static; 
+            margin-bottom: 20px; 
+            width: auto; 
+            text-align: center; font-size: 1.5rem; 
+            pointer-events: none; color: #fff; background: #000; padding: 10px 20px; 
+            border: var(--ui-border); border-radius: var(--ui-radius); box-shadow: var(--ui-shadow);
+        }
+        .split-select { 
+            display: flex; width: 100%; 
+            flex: 1; 
+            max-height: 60vh; 
+            margin-bottom: 20px; 
+            border: var(--ui-border);
+            border-radius: var(--ui-radius);
+            box-shadow: var(--ui-shadow);
+            overflow: hidden; 
+        }
+        #server-back-btn { 
+            position: static; 
+            transform: none; 
+            z-index: 20; 
+        }
+
         @media screen and (orientation: portrait) { 
             .split-select { flex-direction: column; } 
-            .select-zone { width: 100% !important; height: 50% !important; font-size: 3rem !important; }
+            .select-zone { width: 100% !important; height: 50% !important; font-size: 2.5rem !important; }
         }
         .select-zone {
             width: 50%; height: 100%; display: flex; justify-content: center; align-items: center;
-            font-size: 5rem; font-weight: 900; font-style: italic; border: none; cursor: pointer; transition: background 0.3s;
+            font-size: 4rem; cursor: pointer; transition: background 0.1s;
         }
-        .zone-left { color: var(--color-txt-left); text-shadow: 0 0 20px var(--color-txt-left), 0 0 40px var(--color-txt-left); }
-        .zone-right { color: var(--color-txt-right); text-shadow: 0 0 20px var(--color-txt-right), 0 0 40px var(--color-txt-right); }
-        .select-zone:active { background: rgba(255,255,255,0.1); }
-        .select-hint { position: absolute; top: 20%; width: 100%; text-align: center; font-size: 2rem; pointer-events: none; text-shadow: 0 0 10px #fff; z-index: 10; }
-        #server-back-btn { position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%); z-index: 20; }
+        /* 左側紅 */
+        .zone-left { 
+            background: #000; color: var(--color-1p-light); 
+            border-right: 2px solid #fff; text-shadow: 4px 4px 0 #000; 
+        }
+        .zone-left:hover { background: #300; }
+        /* 右側藍 */
+        .zone-right { 
+            background: #000; color: var(--color-2p-light); 
+            border-left: 2px solid #fff; text-shadow: 4px 4px 0 #000; 
+        }
+        .zone-right:hover { background: #003; }
 
-        /* --- Winner --- */
-        #winner-text { font-size: 10vw; font-weight: 900; color: #FFE700; text-shadow: 0 0 20px #FFE700; margin-bottom: 20px; text-align: center; }
-        #btn-restart { font-size: 2rem; border: 2px solid #fff; background: transparent; color: #fff; padding: 10px 30px; cursor: pointer; font-family: var(--font-main); }
+        #winner-text { 
+            font-size: 8vw; color: #FFFF00; text-shadow: 8px 8px 0px #000; margin-bottom: 40px; text-align: center; line-height: 1.5;
+        }
+        #btn-restart { 
+            font-size: 1.5rem; background: #000; color: #fff; padding: 20px 40px; cursor: pointer; 
+        }
 
-        /* --- Game --- */
-        #game-container { position: relative; width: 100%; height: 100%; transition: background 0.5s; background: radial-gradient(circle at center, #1a1a1a 0%, #000 100%); display: none; }
-        body.mode-blackout #game-container { background: #000; }
-        
-        /* Front Cam Mirror */
+        #game-container { position: relative; width: 100%; height: 100%; transition: none; background: #000; display: none; }
         video, canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain; transform: scaleX(-1); transition: opacity 0.5s ease; }
         body.mode-blackout video { opacity: 0; }
 
-        /* --- Side Bars --- */
         .side-bar-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 5; }
-        .side-bar { position: absolute; width: 10px; height: 49.5%; background: transparent; transition: all 0.3s; opacity: 0.1; }
-        #bar-left-top { top: 0; left: 0; border-bottom-right-radius: 10px; }
-        #bar-left-bottom { bottom: 0; left: 0; border-top-right-radius: 10px; }
-        #bar-right-top { top: 0; right: 0; border-bottom-left-radius: 10px; }
-        #bar-right-bottom { bottom: 0; right: 0; border-top-left-radius: 10px; }
-        .bar-active { opacity: 1; background-color: var(--bar-color); box-shadow: 0 0 50px 15px var(--bar-color); width: 15px; }
-        .bar-partner { opacity: 0.3; background-color: var(--bar-color); box-shadow: 0 0 10px 2px var(--bar-color); width: 10px; }
+        .side-bar { position: absolute; width: 12px; height: 48%; background: transparent; transition: all 0.1s; opacity: 0.2; }
+        #bar-left-top { top: 1%; left: 1%; border: 2px dashed #fff; border-bottom-right-radius: 10px; }
+        #bar-left-bottom { bottom: 1%; left: 1%; border: 2px dashed #fff; border-top-right-radius: 10px; }
+        #bar-right-top { top: 1%; right: 1%; border: 2px dashed #fff; border-bottom-left-radius: 10px; }
+        #bar-right-bottom { bottom: 1%; right: 1%; border: 2px dashed #fff; border-top-left-radius: 10px; }
+        .bar-active { opacity: 1; background-color: var(--bar-color); border-style: solid; box-shadow: 4px 4px 0 #000; width: 20px; }
+        .bar-partner { opacity: 0.5; background-color: var(--bar-color); border-style: dotted; width: 12px; }
 
-        /* --- Name Labels --- */
         .name-label {
-            position: absolute; font-size: 2.5rem; font-weight: 900; color: #fff; text-shadow: none; z-index: 15; pointer-events: none; text-transform: uppercase; opacity: 0; transition: opacity 0.2s;
+            position: absolute; font-size: 1.5rem; color: #fff; text-shadow: 3px 3px 0 #000; 
+            z-index: 15; pointer-events: none; text-transform: uppercase; opacity: 0; transition: opacity 0.2s;
+            background: rgba(0,0,0,0.6); padding: 5px;
+            border: 2px solid #fff; border-radius: 8px; box-shadow: 4px 4px 0 #000;
         }
         .name-visible { opacity: 1; }
-        #name-lt { top: 25%; left: 30px; }
-        #name-lb { bottom: 25%; left: 30px; }
-        #name-rt { top: 25%; right: 30px; }
-        #name-rb { bottom: 25%; right: 30px; }
-
-        /* --- UI --- */
-        #ui-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 10; display: flex; flex-direction: column; justify-content: center; }
         
+        /* 姓名標籤緊貼四個角落 */
+        #name-lt { top: 20px; left: 20px; }
+        #name-lb { bottom: 20px; left: 20px; }
+        #name-rt { top: 20px; right: 20px; }
+        #name-rb { bottom: 20px; right: 20px; }
+
+        #ui-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 10; display: flex; flex-direction: column; justify-content: center; }
         #bottom-controls { 
             position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%); pointer-events: auto; z-index: 20; 
-            display: flex; gap: 15px; justify-content: center; flex-wrap: wrap; width: 95%; transition: opacity 0.5s ease; opacity: 0;
+            display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; width: 95%; transition: opacity 0.5s ease; opacity: 0;
         }
         .controls-visible #bottom-controls { opacity: 1; }
-
-        #serve-arrow-svg { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 90px; height: 90px; opacity: 0; transition: all 0.3s; z-index: 100; filter: drop-shadow(0 0 10px rgba(0,0,0,0.5)); }
-        .svg-arrow-left { fill: var(--color-txt-left); transform: translate(-50%, -50%) rotate(180deg) !important; opacity: 1 !important; filter: drop-shadow(0 0 30px var(--color-txt-left)) drop-shadow(0 0 30px var(--color-txt-left)) !important; }
-        .svg-arrow-right { fill: var(--color-txt-right); transform: translate(-50%, -50%) rotate(0deg) !important; opacity: 1 !important; filter: drop-shadow(0 0 30px var(--color-txt-right)) drop-shadow(0 0 30px var(--color-txt-right)) !important; }
-
-        .btn { background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.3); color: rgba(255,255,255,0.8); padding: 8px 20px; font-family: var(--font-main); font-weight: 600; font-size: 12px; letter-spacing: 2px; text-transform: uppercase; cursor: pointer; transition: all 0.3s; backdrop-filter: blur(4px); border-radius: 4px; }
-        .btn:hover { background: rgba(255,255,255,0.1); border-color: #fff; color: #fff; }
-        #btn-exit:hover { border-color: #ff5555; color: #ff5555; }
-        
-        .btn-settings { 
-            background: transparent; border: 2px solid rgba(255,255,255,0.3); 
-            color: #fff; font-size: 1.2rem; padding: 10px 30px; border-radius: 30px; 
-            cursor: pointer; transition: all 0.3s; margin-top: 30px; 
-            font-weight: bold; font-family: var(--font-main); 
+        #serve-arrow-svg { 
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); 
+            width: 80px; height: 80px; opacity: 0; transition: all 0.1s; z-index: 100; filter: drop-shadow(4px 4px 0px #000); 
         }
-        .btn-settings:hover { border-color: #fff; background: rgba(255,255,255,0.1); }
+        .svg-arrow-left { fill: var(--color-1p-light); transform: translate(-50%, -50%) rotate(180deg) !important; opacity: 1 !important; }
+        .svg-arrow-right { fill: var(--color-2p-light); transform: translate(-50%, -50%) rotate(0deg) !important; opacity: 1 !important; }
 
-        .scoreboard-row { display: flex; justify-content: space-between; align-items: center; padding: 30px 60px; width: 100%; height: 100%; box-sizing: border-box; }
+        .btn { 
+            background: #000; color: #fff; padding: 10px 15px; font-size: 0.8rem; letter-spacing: 1px; 
+            backdrop-filter: none; 
+        }
+        .btn:hover { background: #fff; color: #000; }
+        #btn-exit:hover { background: #ff0000; color: #fff; }
+        .btn-settings { font-size: 1rem; padding: 15px 30px; margin-top: 30px; background: #000; }
+        .btn-settings:hover { background: #222; border-color: #FFFF00; color: #FFFF00; }
+
+        /* --- 修正：強制置中計分板 --- */
+        .scoreboard-row { 
+            display: flex; 
+            justify-content: center; /* 強制內容置中 */
+            align-items: center; 
+            padding: 30px 20px; 
+            width: 100%; height: 100%; box-sizing: border-box;
+            gap: 20px; /* 極小的間距 (原為 15vw)，讓兩組分數緊貼 */
+        }
         body.mode-blackout .scoreboard-row { padding: 0 20px; }
-        .score-group { display: flex; flex-direction: column; align-items: center; width: 45%; height: 80%; justify-content: center; position: relative; pointer-events: auto; border: none; cursor: ns-resize; }
-        .score-num { font-size: var(--score-size-normal); font-weight: 900; line-height: 0.9; font-style: italic; transition: font-size 0.5s; z-index: 1; pointer-events: none; }
-        body.mode-blackout .score-num { font-size: var(--score-size-huge); line-height: 0.8; }
         
-        #lbl-left { color: var(--color-txt-left); }
-        #score-left { color: transparent; -webkit-text-stroke: 3px var(--color-txt-left); }
-        #score-left.has-score { color: var(--color-txt-left); -webkit-text-stroke: 0; text-shadow: 0 0 10px var(--color-txt-left), 0 0 30px var(--color-txt-left); }
-        #lbl-right { color: var(--color-txt-right); }
-        #score-right { color: transparent; -webkit-text-stroke: 3px var(--color-txt-right); }
-        #score-right.has-score { color: var(--color-txt-right); -webkit-text-stroke: 0; text-shadow: 0 0 10px var(--color-txt-right), 0 0 30px var(--color-txt-right); }
-        .score-pop { animation: bump 0.2s ease-out; }
+        .score-group { 
+            display: flex; flex-direction: column; align-items: center; 
+            width: auto; /* 不自動寬度 */
+            min-width: 120px; /* 保持最小觸控區，但不致於分太開 */
+            flex: 0 0 auto; /* 禁止自動伸展，強制依賴 gap 置中 */
+            height: 80%; justify-content: center; position: relative; pointer-events: auto; border: none; cursor: ns-resize; 
+        }
+        .score-num { 
+            font-size: var(--score-size-normal); line-height: 1; transition: font-size 0.2s; z-index: 1; pointer-events: none; 
+            font-family: var(--font-main);
+        }
+        body.mode-blackout .score-num { font-size: var(--score-size-huge); }
+        
+        #lbl-left { color: var(--color-1p-light); }
+        #score-left { color: transparent; -webkit-text-stroke: 2px var(--color-1p-light); }
+        #score-left.has-score { color: var(--color-1p-light); -webkit-text-stroke: 0; text-shadow: 8px 8px 0 #000; }
+        #lbl-right { color: var(--color-2p-light); }
+        #score-right { color: transparent; -webkit-text-stroke: 2px var(--color-2p-light); }
+        #score-right.has-score { color: var(--color-2p-light); -webkit-text-stroke: 0; text-shadow: 8px 8px 0 #000; }
+        .score-pop { animation: bump 0.1s steps(2); }
         @keyframes bump { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
 
         #loader { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 99; display: none; flex-direction: column; justify-content: center; align-items: center; }
-        .spinner { width: 40px; height: 40px; border: 3px solid rgba(255,255,255,0.1); border-top: 3px solid #fff; border-radius: 50%; animation: spin 0.8s linear infinite; margin-bottom: 20px; }
-        #loading-text { font-weight: 300; letter-spacing: 1px; font-size: 14px; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .spinner { 
+            width: 40px; height: 40px; background: #FFFF00; animation: flip 1s infinite steps(4); 
+            margin-bottom: 20px; border: 4px solid #fff; border-radius: 50%;
+        }
+        #loading-text { font-size: 1rem; color: #fff; text-transform: uppercase; letter-spacing: 2px; }
+        @keyframes flip { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
     </style>
 </head>
 <body>
 
+    <div id="flash-overlay"></div>
+    <div id="input-blocker"></div>
+
     <div id="portrait-lock">
-        <div class="lock-title">BADMINTON</div>
+        <div class="lock-title">BADMINTON<br>8-BIT</div>
         <div class="rotate-icon"></div>
-        <div class="lock-subtitle">PLEASE ROTATE DEVICE <br>螢幕轉橫/連點切換全螢幕</div>
-        <button class="btn-nav" onclick="handleLockBack()" style="margin-top: 30px;">BACK</button>
+        <div class="lock-subtitle">請旋轉裝置<br>連點啟動全螢幕</div>
+        <br>
+        <button class="btn-nav btn-back" onclick="performTransition(handleLockBack)">BACK</button>
     </div>
 
     <div id="ai-warning-modal">
         <div class="modal-box">
             <div class="modal-title">WARNING</div>
             <div class="modal-text">
-                AI輔助辨識系統尚未完善，<br>
-                可能發生系統卡頓及閃退。
+                動作捕捉計分系統測試中，<br>
+                遊戲過程中可能發生閃退。
             </div>
             <div class="modal-buttons">
-                <button class="modal-btn btn-cancel" onclick="cancelAI()">CANCEL</button>
+                <button class="modal-btn btn-cancel btn-back" onclick="cancelAI()">CANCEL</button>
                 <button class="modal-btn btn-confirm" onclick="confirmAI()">CONFIRM</button>
             </div>
         </div>
@@ -349,11 +490,11 @@
 
     <div id="tutorial-modal">
         <div class="modal-box">
-            <div class="modal-title" id="tutorial-title">MODE TUTORIAL</div>
+            <div class="modal-title" id="tutorial-title">GAME TUTORIAL</div>
             <ul class="modal-text" id="tutorial-list"></ul>
             <div class="modal-buttons">
-                <button class="modal-btn btn-cancel" onclick="backFromTutorial()">BACK</button>
-                <button class="modal-btn btn-confirm" onclick="closeTutorial()">GOT IT</button>
+                <button class="modal-btn btn-cancel btn-back" onclick="performTransition(backFromTutorial)">BACK</button>
+                <button class="modal-btn btn-confirm" onclick="performTransition(closeTutorial)">START</button>
             </div>
         </div>
     </div>
@@ -363,7 +504,7 @@
             <div class="modal-title">SETTINGS</div>
             
             <div class="settings-row">
-                <div class="settings-label">語音音量 (Volume)</div>
+                <div class="settings-label">VOLUME</div>
                 <div class="settings-control">
                     <input type="range" id="set-volume" min="0" max="1" step="0.1">
                     <span class="val-display" id="val-volume">1.0</span>
@@ -371,7 +512,7 @@
             </div>
 
             <div class="settings-row">
-                <div class="settings-label">語音語速 (Speed)</div>
+                <div class="settings-label">SPEED</div>
                 <div class="settings-control">
                     <input type="range" id="set-rate" min="0.5" max="2" step="0.1">
                     <span class="val-display" id="val-rate">1.2</span>
@@ -379,27 +520,27 @@
             </div>
 
             <div class="settings-row">
-                <div class="settings-label">錄影畫面</div>
+                <div class="settings-label">DEFAULT CAM</div>
                 <div class="settings-control">
-                     <label class="switch">
+                      <label class="switch">
                         <input type="checkbox" id="set-cam-default">
                         <span class="slider"></span>
-                    </label>
+                      </label>
                 </div>
             </div>
 
             <div class="settings-row">
-                <div class="settings-label">顯示名稱</div>
+                <div class="settings-label">DEFAULT NAMES</div>
                 <div class="settings-control">
-                     <label class="switch">
+                      <label class="switch">
                         <input type="checkbox" id="set-name-default">
                         <span class="slider"></span>
-                    </label>
+                      </label>
                 </div>
             </div>
 
             <div class="modal-buttons" style="margin-top: 30px;">
-                <button class="modal-btn btn-confirm" onclick="saveAndCloseSettings()">SAVE / CLOSE</button>
+                <button class="modal-btn btn-confirm" onclick="saveAndCloseSettings()">SAVE</button>
             </div>
         </div>
     </div>
@@ -409,12 +550,12 @@
             <h1 class="main-title">
                 BADMINTON
                 <span class="sub-title">
-                    <span class="txt-score">Score</span><span class="txt-board">Board</span>
+                    <span class="txt-score">SCORE</span><span class="txt-board">BOARD</span>
                 </span>
             </h1>
             <div class="mode-btn-container">
-                <button class="btn-mode" onclick="selectMode('singles')">SINGLES</button>
-                <button class="btn-mode" onclick="selectMode('doubles')">DOUBLES</button>
+                <button id="btn-mode-1p" class="btn-mode" onclick="performTransition(() => selectMode('singles'))">1P SINGLES</button>
+                <button id="btn-mode-2p" class="btn-mode" onclick="performTransition(() => selectMode('doubles'))">2P DOUBLES</button>
             </div>
             
             <div class="ai-toggle-container">
@@ -425,36 +566,36 @@
                 </label>
             </div>
 
-            <button class="btn-settings" onclick="openSettings()">SETTINGS</button>
+            <button class="btn-settings" onclick="openSettings()">OPTIONS</button>
         </div>
     </div>
 
     <div id="name-input-screen">
-        <div style="font-size: 2rem; font-weight: bold; margin-bottom: 10px; letter-spacing: 2px; text-align: center;">ENTER NAMES</div>
+        <div style="font-size: 1.2rem; margin-bottom: 20px; color:#FFFF00; text-shadow: 2px 2px 0 #000;">PLAYER ENTRY</div>
         <div id="name-inputs-wrapper"></div>
         <div class="nav-btn-container">
-            <button class="btn-nav" onclick="goBackToStart()">BACK</button>
-            <button class="btn-nav" onclick="submitNames()">NEXT</button>
+            <button class="btn-nav btn-back" onclick="performTransition(goBackToStart)">BACK</button>
+            <button class="btn-nav" onclick="performTransition(submitNames)">READY</button>
         </div>
     </div>
 
     <div id="server-select-screen">
         <div class="select-hint">WHO SERVES FIRST?</div>
         <div class="split-select">
-            <div class="select-zone zone-left" onclick="initSystem('left')">LEFT</div>
-            <div class="select-zone zone-right" onclick="initSystem('right')">RIGHT</div>
+            <div class="select-zone zone-left" onclick="performTransition(() => initSystem('left'))">LEFT<br>TEAM</div>
+            <div class="select-zone zone-right" onclick="performTransition(() => initSystem('right'))">RIGHT<br>TEAM</div>
         </div>
-        <button id="server-back-btn" class="btn-nav" onclick="goBackToNameInput()">BACK</button>
+        <button id="server-back-btn" class="btn-nav btn-back" onclick="performTransition(goBackToNameInput)">BACK</button>
     </div>
 
     <div id="winner-screen">
         <div id="winner-text">PLAYER WINS!</div>
-        <button id="btn-restart" onclick="exitGame()">PLAY AGAIN</button>
+        <button id="btn-restart" class="btn-back" onclick="performTransition(exitGame)">INSERT COIN</button>
     </div>
 
     <div id="loader">
         <div class="spinner"></div>
-        <div id="loading-text">INITIALIZING...</div>
+        <div id="loading-text">LOADING...</div>
     </div>
 
     <div id="game-container">
@@ -477,11 +618,10 @@
 
         <div id="ui-layer">
             <svg id="serve-arrow-svg" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-                <path d="M 20,20 L 80,50 L 20,80 Z" stroke-linejoin="round" stroke-width="10" />
+                <path d="M 20,20 L 80,50 L 20,80 Z" stroke-linejoin="miter" stroke="#fff" stroke-width="4" />
             </svg>
             
-            <div id="top-controls">
-                </div>
+            <div id="top-controls"></div>
 
             <div class="scoreboard-row">
                 <div class="score-group" id="group-left">
@@ -494,10 +634,10 @@
 
             <div id="bottom-controls">
                 <button class="btn" onclick="resetScores()">RESET</button>
-                <button class="btn" id="btn-names" onclick="toggleNames()">HIDE NAMES</button>
-                <button class="btn" id="btn-cam" onclick="toggleCamera()">HIDE CAMERA</button>
-                <button class="btn" onclick="changeServerSide()">CHANGE SERVE</button>
-                <button class="btn" id="btn-exit" onclick="exitGame()">EXIT</button>
+                <button class="btn" id="btn-names" onclick="toggleNames()">NAMES</button>
+                <button class="btn" id="btn-cam" onclick="toggleCamera()">CAM</button>
+                <button class="btn" onclick="changeServerSide()">SERVE</button>
+                <button class="btn btn-back" id="btn-exit" onclick="performTransition(exitGame)">EXIT</button>
             </div>
         </div>
     </div>
@@ -511,7 +651,7 @@
             defaultNames: true
         };
 
-        const SETTINGS_KEY = 'badminton_settings_v3';
+        const SETTINGS_KEY = 'badminton_settings_pixel';
         const savedSettings = localStorage.getItem(SETTINGS_KEY);
         if (savedSettings) {
             try {
@@ -519,6 +659,64 @@
             } catch(e) {}
         }
         
+        // --- Audio Manager ---
+        const sounds = {
+            select: new Audio('select.mp3'),
+            on: new Audio('on.mp3'),
+            cancel: new Audio('cancel.mp3'),
+            back: new Audio('back.mp3'),
+            start: new Audio('start.mp3'),
+            red: new Audio('red.mp3'),
+            blue: new Audio('blue.mp3')
+        };
+        
+        function playSound(key) {
+            if(gameSettings.volume > 0 && sounds[key]) {
+                const s = sounds[key].cloneNode(); 
+                s.volume = gameSettings.volume;
+                s.play().catch(()=>{});
+            }
+        }
+        
+        // --- Global Back Sound Listener (Backup) ---
+        document.addEventListener('click', (e) => {
+            const target = e.target.closest('button') || e.target;
+            if (target.classList && target.classList.contains('btn-back')) {
+                // Sound logic now handled in performTransition usually, but double safety
+            }
+        });
+
+        // --- Transition Logic (Menu Switching) ---
+        function performTransition(callback) {
+            // 1. Determine Sound (Simple check: is it a back button?)
+            // We use Event target check if triggered by click
+            let isBack = false;
+            if(event && event.target) {
+                const target = event.target.closest('button') || event.target;
+                if(target.innerText === 'BACK' || target.innerText === 'EXIT' || target.innerText === 'CANCEL' || target.classList.contains('btn-back')) {
+                    isBack = true;
+                }
+            }
+            playSound(isBack ? 'back' : 'select');
+
+            // 2. Block Input
+            const blocker = document.getElementById('input-blocker');
+            blocker.style.display = 'block';
+
+            // 3. Flicker Effect
+            const overlay = document.getElementById('flash-overlay');
+            overlay.classList.add('active');
+
+            // 4. Wait 1 Second then execute Callback
+            setTimeout(() => {
+                if(callback) callback();
+                
+                // Cleanup
+                overlay.classList.remove('active');
+                blocker.style.display = 'none';
+            }, 699);
+        }
+
         const video = document.getElementById('video');
         const canvas = document.getElementById('output');
         const ctx = canvas.getContext('2d');
@@ -604,6 +802,7 @@
 
         // --- Settings Logic ---
         function openSettings() {
+            playSound('select'); 
             elVol.value = gameSettings.volume;
             valVol.innerText = gameSettings.volume;
             elRate.value = gameSettings.rate;
@@ -614,6 +813,7 @@
         }
 
         function saveAndCloseSettings() {
+            playSound('select'); 
             gameSettings.volume = parseFloat(elVol.value);
             gameSettings.rate = parseFloat(elRate.value);
             gameSettings.defaultCam = elCamDef.checked;
@@ -625,10 +825,9 @@
         elVol.addEventListener('input', (e) => valVol.innerText = e.target.value);
         elRate.addEventListener('input', (e) => valRate.innerText = e.target.value);
 
-        // --- TTS Voice Finder (Auto Female Chinese) ---
+        // --- TTS Voice Finder ---
         function getPreferredVoice() {
             const voices = window.speechSynthesis.getVoices();
-            // Priority: Female Chinese voices
             let target = voices.find(v => (v.lang.includes('zh') || v.lang.includes('CN') || v.lang.includes('TW')) && 
                 (v.name.includes('Google') || v.name.includes('Meijia') || v.name.includes('Yating') || v.name.includes('Siri') || v.name.includes('Sinji') || v.name.includes('Ting-Ting')));
             
@@ -638,21 +837,25 @@
         }
         window.speechSynthesis.getVoices();
 
-        // --- Warning Logic ---
+        // --- AI Toggle Logic ---
         aiCheckbox.addEventListener('change', (e) => {
             if (e.target.checked) {
+                playSound('on'); 
                 warningModal.style.display = 'flex';
             } else {
+                playSound('cancel'); 
                 isAIMode = false;
             }
         });
 
         function confirmAI() {
+            playSound('select'); 
             warningModal.style.display = 'none';
             isAIMode = true;
         }
 
         function cancelAI() {
+            playSound('back');
             warningModal.style.display = 'none';
             aiCheckbox.checked = false;
             isAIMode = false;
@@ -663,17 +866,18 @@
         function selectMode(mode) {
             tempSelectedMode = mode;
             if (isAIMode) {
-                tutorialTitle.innerText = "AI 模式教學";
+                tutorialTitle.innerText = "AI MODE";
                 tutorialList.innerHTML = `
-                    <li>1. 站在鏡頭前，<strong>全身</strong>入鏡。</li>
-                    <li>2. 持續<strong>舉手2秒</strong>感應得分。</li>
-                    <li>3. 畫面<strong>左邊</strong>舉手 = 左隊得分。</li>`;
+                    <li>1. 站在鏡頭前，全身入鏡。</li>
+                    <li>2. 舉手兩秒即可感應得分。</li>
+                    <li>3. 舉起左手，左方得分。</li>
+                    <li>4. 舉起右手，右方得分。</li>`;
             } else {
-                tutorialTitle.innerText = "手動模式教學";
+                tutorialTitle.innerText = "MANUAL MODE";
                 tutorialList.innerHTML = `
-                    <li>1. 在左/右側分數區域操作。</li>
-                    <li>2. <strong>向上滑動</strong>：增加分數 +1。</li>
-                    <li>3. <strong>向下滑動</strong>：減少分數 -1。</li>`;
+                    <li>1. 滑動左右方分數計分。</li>
+                    <li>2. 上滑畫面 +1 分。</li>
+                    <li>3. 下滑畫面 -1 分。</li>`;
             }
             startScreen.style.display = 'none';
             tutorialModal.style.display = 'flex';
@@ -708,7 +912,7 @@
         }
         
         function handleLockBack() {
-            if (selectScreen.style.display === 'block' || gameContainer.style.display === 'block') {
+            if (selectScreen.style.display === 'block' || selectScreen.style.display === 'flex' || gameContainer.style.display === 'block') {
                 if (gameContainer.style.display === 'block') {
                     exitGame();
                     startScreen.style.display = 'none';
@@ -727,31 +931,70 @@
 
             const leftCol = document.createElement('div');
             leftCol.className = 'team-input-col';
-            leftCol.innerHTML = `<div class="team-title" style="color:var(--color-txt-left); text-shadow: 0 0 15px var(--color-txt-left);">LEFT TEAM</div>`;
+            leftCol.innerHTML = `<div class="team-title">LEFT TEAM</div>`;
             
-            const l1Input = createInput('L1', 'LEFT 1');
+            const l1Input = createInput('L1', 'P1 NAME');
             leftCol.appendChild(l1Input);
             
             if (gameMode === 'doubles') {
-                const l2Input = createInput('L2', 'LEFT 2');
+                const l2Input = createInput('L2', 'P2 NAME');
                 leftCol.appendChild(l2Input);
             }
             wrapper.appendChild(leftCol);
 
             const rightCol = document.createElement('div');
             rightCol.className = 'team-input-col';
-            rightCol.innerHTML = `<div class="team-title" style="color:var(--color-txt-right); text-shadow: 0 0 15px var(--color-txt-right);">RIGHT TEAM</div>`;
+            rightCol.innerHTML = `<div class="team-title">RIGHT TEAM</div>`;
             
-            const r1Input = createInput('R1', 'RIGHT 1');
+            const r1Input = createInput('R1', 'P1 NAME');
             rightCol.appendChild(r1Input);
 
             if (gameMode === 'doubles') {
-                const r2Input = createInput('R2', 'Right 2');
+                const r2Input = createInput('R2', 'P2 NAME');
                 rightCol.appendChild(r2Input);
             }
             wrapper.appendChild(rightCol);
         }
         
+        function renderHistoryItems(container, currentInput) {
+            container.innerHTML = '';
+            const allInputs = Array.from(document.querySelectorAll('.input-box'));
+            const usedNames = allInputs.filter(el => el !== currentInput && el.value.trim() !== "").map(el => el.value.trim());
+            const validItems = historyList.slice().reverse().filter(name => !usedNames.includes(name));
+
+            if (validItems.length === 0) return 0;
+
+            validItems.forEach(name => {
+                const item = document.createElement('div');
+                item.className = 'history-item';
+                item.innerText = name;
+                item.onclick = (e) => {
+                    e.stopPropagation();
+                    currentInput.value = name;
+                    container.classList.remove('show');
+                };
+                let pressTimer;
+                const startPress = () => {
+                    pressTimer = setTimeout(() => {
+                        if(confirm('Delete "' + name + '"?')) {
+                            deleteHistory(name);
+                            const count = renderHistoryItems(container, currentInput);
+                            if(count === 0) container.classList.remove('show');
+                        }
+                    }, 800);
+                    item.classList.add('deleting');
+                };
+                const endPress = () => { clearTimeout(pressTimer); item.classList.remove('deleting'); };
+                item.addEventListener('mousedown', startPress);
+                item.addEventListener('touchstart', startPress);
+                item.addEventListener('mouseup', endPress);
+                item.addEventListener('touchend', endPress);
+                item.addEventListener('mouseleave', endPress);
+                container.appendChild(item);
+            });
+            return validItems.length;
+        }
+
         function createInput(idSuffix, placeholder) {
             const container = document.createElement('div');
             container.className = 'input-wrapper';
@@ -760,6 +1003,7 @@
             input.type = 'text';
             input.className = 'input-box';
             input.id = 'input-' + idSuffix;
+            input.readOnly = true; 
             input.placeholder = placeholder;
             input.autocomplete = 'off';
             input.oninput = function() { validateNameInput(this); };
@@ -768,57 +1012,45 @@
             historyDropdown.className = 'history-dropdown';
             historyDropdown.id = 'history-' + idSuffix;
             
+            const kbIcon = document.createElement('div');
+            kbIcon.className = 'kb-icon';
+            kbIcon.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 5H4c-1.1 0-1.99.9-1.99 2L2 17c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm-9 3h2v2h-2V8zm0 3h2v2h-2v-2zM8 8h2v2H8V8zm0 3h2v2H8v-2zm-1 2H5v-2h2v2zm0-3H5V8h2v2zm9 7H8v-2h8v2zm0-4h-2v-2h2v2zm0-3h-2V8h2v2zm3 3h-2v-2h2v2zm0-3h-2V8h2v2z"/></svg>'; 
+            
             input.addEventListener('click', (e) => {
                 e.stopPropagation();
-                document.querySelectorAll('.history-dropdown').forEach(el => el.classList.remove('show'));
-                renderHistoryItems(historyDropdown, input);
-                historyDropdown.classList.add('show');
+                const count = renderHistoryItems(historyDropdown, input);
+                if (count > 0) {
+                    document.querySelectorAll('.kb-icon').forEach(i => i.classList.remove('show'));
+                    kbIcon.classList.add('show');
+                    document.querySelectorAll('.history-dropdown').forEach(el => el.classList.remove('show'));
+                    historyDropdown.classList.add('show');
+                } else {
+                    document.querySelectorAll('.kb-icon').forEach(i => i.classList.remove('show'));
+                    kbIcon.classList.add('show');
+                    input.readOnly = false;
+                    input.focus();
+                    document.querySelectorAll('.history-dropdown').forEach(el => el.classList.remove('show'));
+                }
             });
 
+            kbIcon.addEventListener('click', (e) => {
+                e.stopPropagation();
+                input.readOnly = false;
+                input.focus();
+            });
+            
             container.appendChild(input);
+            container.appendChild(kbIcon);
             container.appendChild(historyDropdown);
             return container;
         }
         
-        function renderHistoryItems(container, inputEl) {
-            container.innerHTML = '';
-            if (historyList.length === 0) return;
-            
-            historyList.slice().reverse().forEach(name => {
-                const item = document.createElement('div');
-                item.className = 'history-item';
-                item.innerText = name;
-                
-                item.onclick = (e) => {
-                    e.stopPropagation();
-                    inputEl.value = name;
-                    container.classList.remove('show');
-                };
-                let pressTimer;
-                const startPress = () => {
-                    pressTimer = setTimeout(() => {
-                        if(confirm('Delete "' + name + '"?')) {
-                            deleteHistory(name);
-                            renderHistoryItems(container, inputEl); 
-                        }
-                    }, 800);
-                    item.classList.add('deleting');
-                };
-                const endPress = () => {
-                    clearTimeout(pressTimer);
-                    item.classList.remove('deleting');
-                };
-                item.addEventListener('mousedown', startPress);
-                item.addEventListener('touchstart', startPress);
-                item.addEventListener('mouseup', endPress);
-                item.addEventListener('touchend', endPress);
-                item.addEventListener('mouseleave', endPress);
-                container.appendChild(item);
-            });
-        }
-        
-        document.addEventListener('click', () => {
-            document.querySelectorAll('.history-dropdown').forEach(el => el.classList.remove('show'));
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.input-wrapper')) {
+                document.querySelectorAll('.input-box').forEach(el => el.readOnly = true);
+                document.querySelectorAll('.kb-icon').forEach(el => el.classList.remove('show'));
+                document.querySelectorAll('.history-dropdown').forEach(el => el.classList.remove('show'));
+            }
         });
 
         function saveToHistory(name) {
@@ -854,6 +1086,7 @@
         }
 
         function submitNames() {
+            // No sound here, performed by transition
             const l1Val = document.getElementById('input-L1').value;
             const r1Val = document.getElementById('input-R1').value;
             const l1 = l1Val || "";
@@ -875,11 +1108,12 @@
             }
             
             nameInputScreen.style.display = 'none';
-            selectScreen.style.display = 'block';
+            selectScreen.style.display = 'flex';
             bodyEl.classList.add('require-landscape');
         }
 
         function initSystem(firstServer) {
+            // Transition handles delay, this just runs logic
             selectScreen.style.display = 'none';
             requestWakeLock();
             
@@ -894,10 +1128,10 @@
                 isCamVisible = gameSettings.defaultCam;
                 if(isCamVisible) {
                     bodyEl.classList.remove('mode-blackout');
-                    btnCam.innerText = "HIDE CAMERA";
+                    btnCam.innerText = "HIDE CAM";
                 } else {
                     bodyEl.classList.add('mode-blackout');
-                    btnCam.innerText = "SHOW CAMERA";
+                    btnCam.innerText = "SHOW CAM";
                 }
                 btnCam.style.display = 'block';
             } else {
@@ -918,6 +1152,7 @@
         }
 
         function resetScores() {
+            playSound('select'); 
             scores = { left: 0, right: 0 };
             leftPositions = [1, 2]; rightPositions = [1, 2];
             cooldownTimer = 0;
@@ -928,17 +1163,20 @@
         }
         
         function changeServerSide() {
+            playSound('select'); 
             currentServer = (currentServer === 'left') ? 'right' : 'left';
             updatePositionsUI();
         }
 
         function toggleNames() {
+            playSound('select'); 
             areNamesVisible = !areNamesVisible;
             btnNames.innerText = areNamesVisible ? "HIDE NAMES" : "SHOW NAMES";
             updatePositionsUI(); 
         }
 
         function exitGame() {
+            // Handled by transition
             isGameActive = false; 
             if(rafId) { 
                 cancelAnimationFrame(rafId);
@@ -1000,8 +1238,10 @@
                 isModelLoaded = true; loader.style.display = 'none'; startGameLoop();
             } catch (e) { alert("Model Error"); }
         }
+        
         function startGameLoop() {
             gameContainer.style.display = 'block';
+            setTimeout(() => { playSound('start'); }, 1000); 
             isGameActive = true;
             detectLoop();
             showControls();
@@ -1020,8 +1260,9 @@
         });
 
         function manualAdjustScore(side, delta) {
-            if (delta > 0) handleScorePoint(side);
+            if (delta > 0) scorePoint(side);
             else {
+                playSound('select'); 
                 scores[side] += delta;
                 if (scores[side] < 0) scores[side] = 0;
                 if (delta < 0 && side === currentServer) {
@@ -1038,7 +1279,6 @@
             }
         }
 
-        // --- Enhanced TTS Function ---
         function speakScore(side) {
             window.speechSynthesis.cancel();
             
@@ -1046,22 +1286,30 @@
             const lName = playerNames.l1.trim();
             const rName = playerNames.r1.trim();
             
-            // Determine suffix based on mode (Adds '隊' only for doubles if name exists)
-            const teamSuffix = (gameMode === 'doubles') ? "隊" : "";
-
-            // 1. Announce Point
             if (side === 'left') {
-                if (lName && lName.length > 0) text += `${lName}${teamSuffix}得分`;
-                else text += "左方得分";
+                if (lName && lName.length > 0) {
+                    text += lName;
+                    if(gameMode === 'doubles') text += "隊";
+                    text += "得分";
+                } else {
+                    text += "左方得分";
+                }
             } else {
-                if (rName && rName.length > 0) text += `${rName}${teamSuffix}得分`;
-                else text += "右方得分";
+                if (rName && rName.length > 0) {
+                    text += rName;
+                    if(gameMode === 'doubles') text += "隊";
+                    text += "得分";
+                } else {
+                    text += "右方得分";
+                }
             }
             
-            // 2. Announce Score
-            text += `，${scores.left} 比 ${scores.right}`;
+            if (side === 'left') {
+                text += `，${scores.left} 比 ${scores.right}`;
+            } else {
+                text += `，${scores.right} 比 ${scores.left}`;
+            }
 
-            // 3. Doubles Announce Server/Receiver
             if (gameMode === 'doubles') {
                 const servingSide = currentServer; 
                 const score = scores[servingSide];
@@ -1072,7 +1320,6 @@
                 const r1 = playerNames.r1.trim() || "右1"; 
                 const r2 = playerNames.r2.trim() || "右2"; 
 
-                // Current Names at Positions based on rotation
                 const nameLT = leftPositions[1] === 1 ? l1 : l2;
                 const nameLB = leftPositions[0] === 1 ? l1 : l2;
                 const nameRT = rightPositions[0] === 1 ? r1 : r2;
@@ -1083,18 +1330,14 @@
 
                 if (servingSide === 'left') {
                     if (isEven) {
-                        // Left serves from Right Court (LB) to Right's Right Court (RT)
                         serverName = nameLB; receiverName = nameRT;
                     } else {
-                        // Left serves from Left Court (LT) to Right's Left Court (RB)
                         serverName = nameLT; receiverName = nameRB;
                     }
                 } else { 
                     if (isEven) {
-                        // Right serves from Right Court (RT) to Left's Right Court (LB)
                         serverName = nameRT; receiverName = nameLB;
                     } else {
-                        // Right serves from Left Court (RB) to Left's Left Court (LT)
                         serverName = nameRB; receiverName = nameLT;
                     }
                 }
@@ -1114,8 +1357,14 @@
 
         function scorePoint(side) {
             handleScorePoint(side);
-            speakScore(side);
-            const color = side === 'left' ? 'rgba(255, 46, 99, 0.4)' : 'rgba(8, 217, 214, 0.4)';
+            
+            // 播放得分音效
+            playSound(side === 'left' ? 'red' : 'blue');
+            
+            // 延遲2秒後播報
+            setTimeout(() => { speakScore(side); }, 2000);
+            
+            const color = side === 'left' ? 'rgba(255, 0, 0, 0.5)' : 'rgba(0, 0, 255, 0.5)';
             ctx.fillStyle = color; ctx.fillRect(0, 0, canvas.width, canvas.height);
             if (checkWinner(side)) return;
             startCooldown(COOLDOWN_DURATION);
@@ -1138,26 +1387,55 @@
         }
 
         function updatePositionsUI() {
-            Object.values(bars).forEach(bar => { bar.className = 'side-bar'; bar.style.removeProperty('--bar-color'); });
+            // 重置所有邊條
+            Object.values(bars).forEach(bar => { 
+                bar.className = 'side-bar'; 
+                bar.style.removeProperty('background-color');
+                bar.style.boxShadow = 'none';
+            });
             Object.values(nameLabels).forEach(lbl => { lbl.innerText = ""; lbl.classList.remove('name-visible'); });
 
             const score = scores[currentServer];
             const isEven = (score % 2 === 0);
             updateArrow();
 
-            const cLeft1 = '--p-left-1'; const cLeft2 = '--p-left-2';
-            const cRight1 = '--p-right-1'; const cRight2 = '--p-right-2';
-            const useMainColor = (gameMode === 'singles');
+            const cRed = 'var(--color-1p-main)';
+            const cBlue = 'var(--color-2p-main)';
 
-            const cLT = useMainColor ? cLeft1 : (leftPositions[1] === 1 ? cLeft1 : cLeft2); 
-            const cLB = useMainColor ? cLeft1 : (leftPositions[0] === 1 ? cLeft1 : cLeft2); 
-            bars.lt.style.setProperty('--bar-color', `var(${cLT})`);
-            bars.lb.style.setProperty('--bar-color', `var(${cLB})`);
+            if (gameMode === 'doubles') {
+                // 左方：上紅 下藍
+                bars.lt.style.backgroundColor = cRed;
+                bars.lb.style.backgroundColor = cBlue;
+                // 右方：上藍 下紅
+                bars.rt.style.backgroundColor = cBlue;
+                bars.rb.style.backgroundColor = cRed;
+            } else {
+                // 單打：依照隊伍顏色
+                bars.lt.style.backgroundColor = cRed;
+                bars.lb.style.backgroundColor = cRed;
+                bars.rt.style.backgroundColor = cBlue;
+                bars.rb.style.backgroundColor = cBlue;
+            }
 
-            const cRT = useMainColor ? cRight1 : (rightPositions[0] === 1 ? cRight1 : cRight2); 
-            const cRB = useMainColor ? cRight1 : (rightPositions[1] === 1 ? cRight1 : cRight2); 
-            bars.rt.style.setProperty('--bar-color', `var(${cRT})`);
-            bars.rb.style.setProperty('--bar-color', `var(${cRB})`);
+            if (isEven) {
+                // 偶數分：發球/接發在 [左下] 與 [右上]
+                bars.lb.classList.add('bar-active');
+                bars.rt.classList.add('bar-active');
+                
+                if (gameMode === 'doubles') { 
+                    bars.lt.classList.add('bar-partner'); 
+                    bars.rb.classList.add('bar-partner'); 
+                }
+            } else {
+                // 奇數分：發球/接發在 [左上] 與 [右下]
+                bars.lt.classList.add('bar-active');
+                bars.rb.classList.add('bar-active');
+                
+                if (gameMode === 'doubles') { 
+                    bars.lb.classList.add('bar-partner'); 
+                    bars.rt.classList.add('bar-partner'); 
+                }
+            }
 
             let nameLT = "", nameLB = "", nameRT = "", nameRB = "";
             if (gameMode === 'singles') {
@@ -1175,16 +1453,6 @@
                 if(nameLB) { nameLabels.lb.innerText = nameLB; nameLabels.lb.classList.add('name-visible'); }
                 if(nameRT) { nameLabels.rt.innerText = nameRT; nameLabels.rt.classList.add('name-visible'); }
                 if(nameRB) { nameLabels.rb.innerText = nameRB; nameLabels.rb.classList.add('name-visible'); }
-            }
-
-            if (isEven) {
-                bars.lb.classList.add('bar-active');
-                bars.rt.classList.add('bar-active');
-                if (gameMode === 'doubles') { bars.lt.classList.add('bar-partner'); bars.rb.classList.add('bar-partner'); }
-            } else {
-                bars.lt.classList.add('bar-active');
-                bars.rb.classList.add('bar-active');
-                if (gameMode === 'doubles') { bars.lb.classList.add('bar-partner'); bars.rt.classList.add('bar-partner'); }
             }
         }
 
@@ -1205,8 +1473,8 @@
         function showWinner(side) {
             isGameActive = false; if(rafId) { cancelAnimationFrame(rafId); clearTimeout(rafId); }
             const wName = side==='left' ? playerNames.l1 : playerNames.r1; 
-            winnerText.innerText = wName + " WINS!";
-            winnerText.style.color = side==='left'?'var(--color-txt-left)':'var(--color-txt-right)';
+            winnerText.innerText = wName + "\nWIN!";
+            winnerText.style.color = side==='left'?'var(--color-1p-light)':'var(--color-2p-light)';
             setTimeout(()=>{gameContainer.style.display='none';winnerScreen.style.display='flex';},1000);
         }
         function updateScoreUI(side) {
@@ -1216,9 +1484,10 @@
         }
         function toggleCamera() {
             if (!isAIMode) return;
+            playSound('select'); 
             isCamVisible = !isCamVisible;
-            if (isCamVisible) { bodyEl.classList.remove('mode-blackout'); btnCam.innerText = "HIDE CAMERA"; }
-            else { bodyEl.classList.add('mode-blackout'); btnCam.innerText = "SHOW CAMERA"; }
+            if (isCamVisible) { bodyEl.classList.remove('mode-blackout'); btnCam.innerText = "HIDE CAM"; }
+            else { bodyEl.classList.add('mode-blackout'); btnCam.innerText = "SHOW CAM"; }
         }
         function startCooldown(t) {
             cooldownTimer = t || COOLDOWN_DURATION;
@@ -1261,7 +1530,6 @@
                     ctx.clearRect(0,0,canvas.width,canvas.height);
                     if(cooldownTimer<=0) {
                         if(gameContainer.classList.contains('grayscale-mode')) gameContainer.classList.remove('grayscale-mode');
-                        if(isCamVisible) drawCenterLine();
                         if(poses.length>0 && poses[0].score>0.3) {
                             checkGameLogic(poses[0].keypoints);
                         } else resetHold();
@@ -1279,8 +1547,7 @@
             else if(rw && rw.score>0.3 && rw.y < kp.find(k=>k.name==='right_ear').y) active=rw;
             if(!active) { resetHold(); return; }
             
-            // 前鏡頭鏡像邏輯
-            const side = active.x > midX ? 'left' : 'right';
+            const side = (active.name === 'left_wrist') ? 'left' : 'right';
             
             if(!isHolding) { isHolding=true; holdStart=Date.now(); }
             else {
@@ -1295,22 +1562,19 @@
         function resetHold(){ isHolding=false; holdStart=0; }
         
         function drawHoldRing(x,y,p,side) {
-            const c = side==='left'?'#FF2E63':'#08D9D6';
+            const c = side==='left'?'#D32F2F':'#1976D2';
             ctx.save();
             ctx.translate(x, y);
-            ctx.beginPath(); ctx.arc(0,0,60,0,2*Math.PI); 
-            ctx.strokeStyle='rgba(255,255,255,0.2)'; ctx.lineWidth=6; ctx.stroke();
+            
             ctx.beginPath(); 
-            ctx.arc(0,0,60,-0.5*Math.PI,-0.5*Math.PI+(2*Math.PI*p)); 
-            ctx.strokeStyle=c; ctx.lineWidth=6; ctx.lineCap='round'; 
-            ctx.shadowColor=c; ctx.shadowBlur=15; ctx.stroke();
+            ctx.rect(-50, -50, 100, 100); 
+            ctx.strokeStyle='rgba(255,255,255,0.5)'; ctx.lineWidth=4; ctx.stroke();
+            
+            const height = 100 * p;
+            ctx.fillStyle = c;
+            ctx.fillRect(-46, 46 - height, 92, height);
+            
             ctx.restore();
-        }
-
-        function drawCenterLine() {
-            const mid = canvas.width/2; const g = ctx.createLinearGradient(mid,0,mid,canvas.height);
-            g.addColorStop(0,"rgba(255,255,255,0)"); g.addColorStop(0.5,"rgba(255,255,255,0.3)"); g.addColorStop(1,"rgba(255,255,255,0)");
-            ctx.beginPath(); ctx.moveTo(mid,0); ctx.lineTo(mid,canvas.height); ctx.strokeStyle=g; ctx.lineWidth=1; ctx.stroke();
         }
 
         document.addEventListener('dblclick',e=>{
